@@ -1,0 +1,2087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LEVITY — Zero-sugar energy. Defy gravity.</title>
+<meta name="description" content="Levity is a zero-sugar energy drink engineered for lift: 200 mg of clean caffeine, L-theanine and electrolytes. Eight flavors, no crash.">
+<meta name="theme-color" content="#07060f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%2307060f' stroke='%239d7bff' stroke-width='2'/%3E%3Cpath d='M9 19l7-7 7 7' fill='none' stroke='%239d7bff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   LEVITY — design tokens
+   Base is a deep ultraviolet, not neutral black. The accent is dynamic:
+   the whole site retints to whichever flavor is currently selected.
+   ===================================================================== */
+:root{
+  --bg:#07060f;
+  --bg-2:#0e0c1a;
+  --bg-3:#151230;
+  --paper:#f3f0ea;
+  --paper-ink:#171422;
+  --text:#f5f3ff;
+  --muted:#9b97b5;
+  --line:rgba(245,243,255,.09);
+  --line-strong:rgba(245,243,255,.18);
+
+  --accent:#9d7bff;
+  --accent-rgb:157,123,255;
+  --accent-dark:#2a1170;
+  --accent-ink:#0b0716;
+
+  --font-display:"Unbounded","Arial Black",Impact,system-ui,sans-serif;
+  --font-body:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+
+  --r-panel:28px;
+  --r-card:24px;
+  --r-chip:14px;
+
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --spring:cubic-bezier(.34,1.56,.64,1);
+  --container:1240px;
+  --scroll-boost:0;
+}
+
+/* ---------- Base ---------- */
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:110px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:16px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+img,svg{display:block;max-width:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+a{color:inherit;text-decoration:none}
+p{margin:0}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:700;line-height:1.05;letter-spacing:-.02em;margin:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
+::selection{background:var(--accent);color:var(--accent-ink)}
+.container{width:min(var(--container),calc(100% - 48px));margin-inline:auto}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.icon{width:1.1em;height:1.1em;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none;flex:none}
+
+/* ---------- Fixed background layers ---------- */
+.bg-particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+.bg-noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:calc(.06 + var(--scroll-boost)*.05);transition:opacity .3s;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.page{position:relative;z-index:2}
+
+/* ---------- Scroll progress ---------- */
+.progress{position:fixed;top:0;left:0;width:100%;height:2px;z-index:150;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:background .6s;box-shadow:0 0 calc(6px + var(--scroll-boost)*16px) calc(1px + var(--scroll-boost)*2px) rgba(var(--accent-rgb),calc(.55 + var(--scroll-boost)*.45))}
+
+/* ---------- Cursor ---------- */
+.cursor-dot,.cursor-ring{position:fixed;top:0;left:0;pointer-events:none;z-index:9999;border-radius:50%;opacity:0;transition:opacity .3s}
+.has-cursor .cursor-dot,.has-cursor .cursor-ring{opacity:1}
+.has-cursor.cursor-out .cursor-dot,.has-cursor.cursor-out .cursor-ring{opacity:0}
+.cursor-dot{width:6px;height:6px;margin:-3px 0 0 -3px;background:var(--accent);transition:background .6s,opacity .3s}
+.cursor-ring{width:34px;height:34px;margin:-17px 0 0 -17px;border:1.5px solid rgba(255,255,255,.75);mix-blend-mode:difference;box-shadow:0 0 calc(var(--scroll-boost)*22px) calc(var(--scroll-boost)*4px) rgba(var(--accent-rgb),.8);transition:width .3s var(--ease),height .3s var(--ease),margin .3s var(--ease),opacity .3s,background .3s,box-shadow .2s}
+.cursor-hover .cursor-ring{width:58px;height:58px;margin:-29px 0 0 -29px;background:rgba(255,255,255,.14)}
+.has-cursor,.has-cursor *{cursor:none!important}
+
+/* ---------- Loader ---------- */
+.loader{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:var(--bg);transition:opacity .7s var(--ease),visibility .7s}
+.loader.is-done{opacity:0;visibility:hidden}
+.loader__inner{display:grid;justify-items:center;gap:18px}
+.loader__mark{width:44px;height:44px;color:var(--accent);animation:loaderFloat 2s ease-in-out infinite}
+@keyframes loaderFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.loader__word{font-family:var(--font-display);font-weight:800;letter-spacing:.32em;font-size:13px;color:var(--muted);padding-left:.32em}
+.loader__bar{width:160px;height:2px;background:rgba(255,255,255,.08);overflow:hidden;border-radius:2px}
+.loader__bar i{display:block;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left}
+
+/* ---------- Nav ---------- */
+.nav{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:100;width:min(var(--container),calc(100% - 32px));display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 8px 8px 20px;border-radius:999px;background:rgba(14,12,26,.55);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border:1px solid var(--line);box-shadow:0 10px 40px -20px rgba(0,0,0,.9);transition:background .4s,box-shadow .4s,border-color .4s}
+.nav.is-scrolled{background:rgba(14,12,26,.82);border-color:var(--line-strong);box-shadow:0 24px 60px -24px rgba(0,0,0,.95)}
+.nav__logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:800;letter-spacing:.16em;font-size:14px;padding-right:10px}
+.nav__mark{width:28px;height:28px;color:var(--accent);transition:color .6s,transform .5s var(--spring)}
+.nav__logo:hover .nav__mark{transform:translateY(-3px)}
+.nav__links{display:flex;gap:2px;list-style:none;margin:0;padding:0}
+.nav__links a{position:relative;display:block;padding:9px 15px;font-size:14px;font-weight:600;color:var(--muted);border-radius:999px;transition:color .3s,background .3s}
+.nav__links a:hover{color:var(--text);background:rgba(255,255,255,.06)}
+.nav__links a::after{content:"";position:absolute;left:16px;right:16px;bottom:6px;height:2px;border-radius:2px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .45s var(--spring),background .4s}
+.nav__links a.is-active{color:var(--text)}
+.nav__links a.is-active::after{transform:scaleX(1)}
+.nav__right{display:flex;align-items:center;gap:8px}
+.cart-btn{position:relative;display:flex;align-items:center;gap:9px;height:44px;padding:0 8px 0 16px;border-radius:999px;background:var(--text);color:var(--accent-ink);font-weight:700;font-size:14px;transition:background .3s,color .3s}
+.cart-btn:hover{background:var(--accent)}
+.cart-btn.is-bump{animation:bump .55s var(--spring)}
+.cart-btn__count{min-width:28px;height:28px;padding:0 8px;display:grid;place-items:center;border-radius:999px;background:var(--accent-ink);color:#fff;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;transition:background .3s}
+.cart-btn.has-items .cart-btn__count{background:var(--accent);color:var(--accent-ink)}
+.cart-btn:hover .cart-btn__count{background:var(--accent-ink);color:#fff}
+@keyframes bump{0%{transform:scale(1)}30%{transform:scale(1.14) rotate(-3deg)}60%{transform:scale(.97)}100%{transform:scale(1)}}
+.nav__toggle{display:none;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid var(--line);position:relative}
+.nav__toggle span{position:absolute;left:13px;right:13px;height:2px;border-radius:2px;background:#fff;transition:transform .4s var(--ease)}
+.nav__toggle span:first-child{top:16px}
+.nav__toggle span:last-child{bottom:16px}
+.menu-open .nav__toggle span:first-child{transform:translateY(5px) rotate(45deg)}
+.menu-open .nav__toggle span:last-child{transform:translateY(-5px) rotate(-45deg)}
+.mobile-menu{position:fixed;inset:0;z-index:90;background:rgba(7,6,15,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;flex-direction:column;justify-content:center;padding:40px;opacity:0;visibility:hidden;transition:opacity .5s var(--ease),visibility .5s}
+.menu-open .mobile-menu{opacity:1;visibility:visible}
+.mobile-menu a{font-family:var(--font-display);font-size:clamp(2rem,9vw,3.4rem);font-weight:800;padding:10px 0;transform:translateY(24px);opacity:0;transition:transform .6s var(--ease),opacity .6s var(--ease);transition-delay:calc(var(--i)*.06s)}
+.menu-open .mobile-menu a{transform:none;opacity:1}
+.mobile-menu a:hover{color:var(--accent)}
+
+/* ---------- Buttons: every button is alive ---------- */
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;height:56px;padding:0 30px;border-radius:999px;font-weight:700;font-size:15px;letter-spacing:.005em;overflow:hidden;isolation:isolate;white-space:nowrap;transition:transform .5s var(--spring),box-shadow .4s,background .3s,color .3s,border-color .3s;will-change:transform}
+.btn--sm{height:46px;padding:0 20px;font-size:14px}
+.btn--primary{background:var(--accent);color:var(--accent-ink);box-shadow:0 12px 30px -12px rgba(var(--accent-rgb),.7)}
+.btn--primary:hover{box-shadow:0 20px 44px -14px rgba(var(--accent-rgb),.85)}
+.btn--ghost{background:rgba(255,255,255,.05);border:1px solid var(--line-strong);color:var(--text);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.btn--ghost:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3)}
+.btn--light{background:var(--text);color:var(--accent-ink)}
+.btn--light:hover{background:#fff}
+.btn::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.4) 50%,transparent 70%);transform:translateX(-130%);transition:transform .9s var(--ease);z-index:-1;pointer-events:none}
+.btn:hover::after{transform:translateX(130%)}
+.btn__label{position:relative;display:inline-flex;align-items:center;gap:10px;transition:transform .4s var(--ease),opacity .3s var(--ease)}
+.btn:active .btn__label{transform:scale(.95)}
+.btn__state{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:8px;opacity:0;transform:translateY(10px);transition:opacity .3s var(--ease),transform .3s var(--ease);pointer-events:none;font-weight:700}
+.btn.is-loading .btn__label,.btn.is-done .btn__label{opacity:0;transform:translateY(-10px)}
+.btn.is-loading .btn__state--loading,.btn.is-done .btn__state--done{opacity:1;transform:none}
+.btn__state--loading i{width:18px;height:18px;border-radius:50%;border:2px solid rgba(0,0,0,.2);border-top-color:currentColor;animation:spin .7s linear infinite}
+.btn.is-done{background:#fff;color:var(--accent-ink)}
+.btn.is-done .btn__state--done .icon{color:#12a150}
+.btn[disabled]{opacity:.6;cursor:not-allowed}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.5);transform:scale(0);animation:ripple .65s ease-out forwards;pointer-events:none;z-index:-1}
+@keyframes ripple{to{transform:scale(3.2);opacity:0}}
+.magnet{display:inline-block;padding:14px;margin:-14px;border-radius:999px}
+.magnet .btn{transition:transform .6s var(--spring),box-shadow .4s,background .3s,color .3s}
+.magnet.is-active .btn{transition:transform .15s ease-out,box-shadow .4s,background .3s,color .3s}
+
+/* ---------- Hero ---------- */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;padding:150px 0 70px;overflow:hidden}
+.hero__orb-wrap{position:absolute;pointer-events:none;will-change:transform}
+.hero__orb-wrap--a{width:680px;height:680px;left:-14%;top:-18%}
+.hero__orb-wrap--b{width:620px;height:620px;right:-12%;bottom:-24%}
+.hero__orb{position:absolute;inset:0;border-radius:50%;filter:blur(90px);pointer-events:none;will-change:transform;transition:background 1.2s}
+.hero__orb--a{background:radial-gradient(circle,rgba(var(--accent-rgb),.5),transparent 62%);animation:orbA 16s ease-in-out infinite alternate}
+.hero__orb--b{background:radial-gradient(circle,rgba(255,154,60,.28),transparent 62%);animation:orbB 20s ease-in-out infinite alternate}
+@keyframes orbA{to{transform:translate(140px,90px) scale(1.15)}}
+@keyframes orbB{to{transform:translate(-110px,-70px) scale(1.12)}}
+.hero__floor{position:absolute;left:50%;bottom:-6%;width:220vw;height:62vh;transform:translateX(-50%) perspective(700px) rotateX(66deg);transform-origin:center bottom;background-image:linear-gradient(rgba(var(--accent-rgb),.16) 1px,transparent 1px),linear-gradient(90deg,rgba(var(--accent-rgb),.16) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse at 50% 100%,#000 10%,transparent 62%);mask-image:radial-gradient(ellipse at 50% 100%,#000 10%,transparent 62%);animation:floorMove 5s linear infinite;pointer-events:none;opacity:.7}
+@keyframes floorMove{to{background-position:0 64px}}
+.hero__ghost{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--font-display);font-weight:900;font-size:clamp(8rem,26vw,24rem);line-height:1;letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.05);white-space:nowrap;pointer-events:none;user-select:none;z-index:0}
+.hero__inner{position:relative;z-index:2;display:grid;grid-template-columns:1.05fr .95fr;gap:32px;align-items:center}
+
+.hero__fade{opacity:0;transform:translateY(22px)}
+.is-loaded .hero__fade{animation:fadeUp 1s var(--ease) both;animation-delay:var(--d,0s)}
+@keyframes fadeUp{to{opacity:1;transform:none}}
+
+.hero__note{display:inline-flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:999px;border:1px solid var(--line-strong);background:rgba(255,255,255,.04);font-size:13px;font-weight:600;color:var(--muted)}
+.hero__note b{display:inline-grid;place-items:center;height:26px;padding:0 10px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:800;letter-spacing:.04em;transition:background .6s}
+.hero__title{font-size:clamp(3.4rem,8.4vw,8rem);font-weight:800;line-height:.9;margin:26px 0 28px;letter-spacing:-.03em}
+.hero__title .line{display:block;overflow:hidden;padding-bottom:.08em;margin-bottom:-.08em;perspective:700px}
+.hero__title .c{display:inline-block;transform:translateY(112%) rotateX(-70deg);opacity:0;transform-origin:50% 100%;will-change:transform}
+.is-loaded .hero__title .c{animation:charIn 1s var(--ease) forwards;animation-delay:calc(.2s + var(--i)*.04s)}
+@keyframes charIn{to{transform:none;opacity:1}}
+.hero__title .line--accent .c{background:linear-gradient(180deg,#fff 0%,var(--accent) 55%,rgba(var(--accent-rgb),.65) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero__lead{max-width:50ch;font-size:clamp(1.02rem,1.25vw,1.18rem);line-height:1.6;color:var(--muted)}
+.hero__lead strong{color:var(--text);font-weight:600}
+.hero__cta{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin-top:36px}
+.hero__pour{margin-top:44px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px}
+.hero__pour-label{width:100%;font-size:13px;color:var(--muted);font-weight:600;margin-bottom:2px}
+.hero__pour-label span{color:var(--text);display:inline-block}
+.hero__pour-label span.is-swap{animation:swapIn .5s var(--ease)}
+@keyframes swapIn{from{opacity:0;transform:translateY(8px)}}
+
+.pill{--pc:#fff;display:inline-flex;align-items:center;gap:10px;height:42px;padding:0 16px 0 12px;border-radius:999px;border:1px solid var(--line-strong);background:rgba(255,255,255,.04);font-size:13px;font-weight:700;color:var(--muted);transition:color .35s,background .35s,border-color .35s,transform .35s var(--spring),box-shadow .35s}
+.pill i{width:12px;height:12px;border-radius:50%;background:var(--pc);box-shadow:0 0 14px var(--pc);transition:background .3s,box-shadow .3s}
+.pill:hover{color:var(--text);border-color:rgba(255,255,255,.3);transform:translateY(-2px)}
+.pill.is-active{color:var(--accent-ink);background:var(--pc);border-color:var(--pc);box-shadow:0 12px 30px -10px var(--pc)}
+.pill.is-active i{background:var(--accent-ink);box-shadow:none}
+
+/* 3D stage: a real CSS 3D context that rotates with the pointer,
+   with the WebGL can at z=0, the ring behind it and the chips in front. */
+.hero__stage{position:relative;height:min(78vh,740px);perspective:1400px;opacity:0;transform:scale(.92)}
+.is-loaded .hero__stage{animation:stageIn 1.4s var(--ease) .3s forwards}
+@keyframes stageIn{to{opacity:1;transform:none}}
+.hero__stage-inner{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+.hero__ring{position:absolute;left:50%;top:50%;width:min(540px,72vw);aspect-ratio:1;transform:translate(-50%,-50%) translateZ(-180px);border-radius:50%;border:1px solid rgba(var(--accent-rgb),.28);box-shadow:0 0 140px -20px rgba(var(--accent-rgb),.4),inset 0 0 90px -30px rgba(var(--accent-rgb),.35);background:radial-gradient(circle,rgba(var(--accent-rgb),.12),transparent 66%);transition:border-color 1s,box-shadow 1s,background 1s}
+.hero__ring::before{content:"";position:absolute;inset:-44px;border-radius:50%;border:1px dashed rgba(255,255,255,.1);animation:spin 46s linear infinite}
+.hero__ring::after{content:"";position:absolute;inset:36px;border-radius:50%;border:1px solid rgba(255,255,255,.05)}
+#can3d{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y;transform:translateZ(0)}
+#can3d.is-dragging{cursor:grabbing}
+.hero__shadow{position:absolute;left:50%;top:79%;width:270px;height:64px;transform:translate(-50%,-50%);background:radial-gradient(ellipse,rgba(0,0,0,.75),transparent 66%);filter:blur(6px);opacity:.7;pointer-events:none}
+.hero__hint{position:absolute;left:50%;bottom:4%;transform:translateX(-50%) translateZ(40px);font-size:12px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.hero__hint::before{content:"";width:22px;height:1px;background:var(--muted)}
+.hero__fallback{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.no-webgl #can3d,.no-webgl .hero__hint{display:none}
+.no-webgl .hero__fallback{display:block}
+
+.chip{position:absolute;display:flex;align-items:center;gap:12px;padding:10px 16px 10px 10px;border-radius:var(--r-chip);background:rgba(18,15,34,.72);border:1px solid var(--line-strong);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 24px 50px -22px rgba(0,0,0,.9);animation:chipFloat 6.5s ease-in-out infinite;animation-delay:var(--delay,0s);transform:translateZ(var(--z,80px));white-space:nowrap}
+.chip__ico{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:rgba(var(--accent-rgb),.18);color:var(--accent);transition:background .6s,color .6s}
+.chip__ico .icon{width:18px;height:18px}
+.chip__txt{display:grid;line-height:1.2}
+.chip__txt b{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+.chip__txt span{font-size:11.5px;color:var(--muted);font-weight:600}
+.chip--1{left:2%;top:16%;--z:130px;--delay:0s}
+.chip--2{right:-2%;top:36%;--z:90px;--delay:-2.2s}
+.chip--3{left:6%;bottom:14%;--z:150px;--delay:-4.1s}
+@keyframes chipFloat{0%,100%{transform:translateZ(var(--z)) translateY(0)}50%{transform:translateZ(var(--z)) translateY(-12px)}}
+
+/* ---------- Marquee (the claims printed on the can) ---------- */
+.marquee{position:relative;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(255,255,255,.02);overflow:hidden;transform:rotate(-1.4deg) scale(1.03);margin:10px 0 60px}
+.marquee__track{display:flex;width:max-content;animation:marquee 34s linear infinite;white-space:nowrap}
+.marquee__item{display:flex;align-items:center;gap:40px;padding-right:40px;font-family:var(--font-display);font-weight:700;font-size:clamp(.95rem,2vw,1.45rem);letter-spacing:.02em;color:var(--text)}
+.marquee__item i{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--accent);transition:background .6s,box-shadow .6s}
+@keyframes marquee{to{transform:translateX(-50%)}}
+
+/* ---------- Sections ---------- */
+.section{position:relative;padding:130px 0}
+.section__inner{position:relative;z-index:1;perspective:1300px}
+.section__head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:32px 64px;align-items:end;margin-bottom:72px}
+.section__title{font-size:clamp(2.1rem,4.8vw,4.2rem);font-weight:800;line-height:.98;max-width:12ch;letter-spacing:-.03em}
+.section__desc{color:var(--muted);font-size:1.05rem;max-width:44ch;line-height:1.65}
+.section__ghost{position:absolute;left:50%;top:50%;transform:translate(-50%,calc(-50% + var(--py,0px)));font-family:var(--font-display);font-weight:900;font-size:clamp(6rem,22vw,20rem);line-height:1;letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.045);white-space:nowrap;pointer-events:none;user-select:none;z-index:0}
+[data-depth]{transform:translate3d(0,var(--py,0px),0)}
+.section__ghost[data-depth]{transform:translate(-50%,calc(-50% + var(--py,0px)))}
+
+/* Reveal: one soft entrance per block, kept restrained */
+[data-reveal]{opacity:0;transform:translateY(56px) scale(.92) rotateX(10deg);filter:blur(9px);transition:opacity 1.1s var(--ease),transform 1.1s var(--ease),filter 1s var(--ease);transition-delay:var(--d,0s);transform-origin:50% 100%;will-change:transform,opacity,filter}
+[data-reveal].is-in{opacity:1;transform:none;filter:blur(0)}
+
+/* Tilt cards: a real 3D rendering context. The glass surface is a flat
+   child at z=0; content floats above it at increasing depths. */
+[data-tilt]{transform-style:preserve-3d;transition:transform .7s var(--ease);will-change:transform}
+[data-tilt].is-tilting{transition:transform .1s linear}
+.glare{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .4s;mix-blend-mode:screen}
+.is-tilting .glare{opacity:1}
+.card{position:relative;border-radius:var(--r-card)}
+.card__surface{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02) 60%,rgba(var(--accent-rgb),.04));border:1px solid var(--line);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 34px 70px -34px rgba(0,0,0,.9);overflow:hidden;transition:border-color .4s,box-shadow .4s}
+.card:hover .card__surface{border-color:var(--line-strong);box-shadow:0 46px 90px -34px rgba(0,0,0,.95),0 0 0 1px rgba(var(--accent-rgb),.18)}
+.lift-1{transform:translateZ(30px)}
+.lift-2{transform:translateZ(60px)}
+.lift-3{transform:translateZ(90px)}
+
+/* ---------- Features: a floating shelf, not a card grid ---------- */
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--line);perspective:1300px}
+.feature{position:relative;padding:44px 40px 0 0;perspective:900px}
+.feature+.feature{padding-left:40px;border-left:1px solid var(--line)}
+.feature__ico{position:relative;width:64px;height:64px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(var(--accent-rgb),.32),rgba(var(--accent-rgb),.06));border:1px solid rgba(var(--accent-rgb),.35);color:var(--accent);box-shadow:0 20px 40px -18px rgba(var(--accent-rgb),.6);transform-style:preserve-3d;transition:transform .7s var(--spring),background .6s,border-color .6s,color .6s,box-shadow .6s;animation:chipFloat 7s ease-in-out infinite;animation-delay:var(--delay,0s);--z:0px}
+.feature__ico .icon{width:26px;height:26px;transform:translateZ(24px)}
+.feature__ico::after{content:"";position:absolute;left:12px;right:12px;bottom:-22px;height:14px;border-radius:50%;background:radial-gradient(ellipse,rgba(var(--accent-rgb),.5),transparent 70%);filter:blur(6px);transform:translateZ(-30px)}
+.feature:hover .feature__ico{transform:translateZ(var(--z)) translateY(-12px) rotateX(12deg) rotateY(-14deg)}
+.feature h3{font-size:1.32rem;margin:30px 0 12px;font-weight:700;line-height:1.2}
+.feature p{color:var(--muted);font-size:.98rem;line-height:1.65;max-width:34ch}
+
+/* ---------- Flavors ---------- */
+.flavor-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;padding-top:70px}
+.flavor-card{--c:#9d7bff;--cd:#2a1170;--c-rgb:157,123,255;min-height:560px;display:flex;flex-direction:column}
+.flavor-card__glow{position:absolute;left:50%;top:0;width:300px;height:300px;transform:translate(-50%,-42%);background:radial-gradient(circle,rgba(var(--c-rgb),.5),transparent 62%);filter:blur(32px);opacity:.55;transition:opacity .5s}
+.flavor-card:hover .flavor-card__glow{opacity:.9}
+.flavor-card__can{position:absolute;left:50%;top:-64px;margin-left:-55px;transform:translateZ(90px);transition:transform .7s var(--spring)}
+.flavor-card:hover .flavor-card__can{transform:translateZ(120px) translateY(-14px)}
+.flavor-card__can::after{content:"";position:absolute;left:50%;bottom:-30px;width:130px;height:28px;transform:translateX(-50%);background:radial-gradient(ellipse,rgba(0,0,0,.7),transparent 66%);filter:blur(5px)}
+.flavor-card__body{position:relative;transform:translateZ(30px);padding:222px 26px 26px;display:flex;flex-direction:column;flex:1}
+.flavor-card__notes{font-size:13px;color:var(--c);font-weight:700;transition:color .3s}
+.flavor-card__title{font-size:1.45rem;margin:8px 0 10px;font-weight:700;letter-spacing:-.02em}
+.flavor-card__desc{color:var(--muted);font-size:.95rem;line-height:1.6;margin-bottom:22px}
+.pack-select{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);margin-bottom:20px;align-self:flex-start}
+.pack-btn{height:34px;padding:0 13px;border-radius:999px;font-weight:700;font-size:13px;color:var(--muted);display:inline-flex;align-items:baseline;gap:4px;transition:background .3s,color .3s,transform .3s var(--spring)}
+.pack-btn small{font-size:10.5px;font-weight:600}
+.pack-btn:hover{color:var(--text);transform:translateY(-1px)}
+.pack-btn.is-active{background:var(--text);color:var(--accent-ink)}
+.flavor-card__buy{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto}
+.price{display:grid;line-height:1.15}
+.price__val{font-family:var(--font-display);font-weight:700;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.price__per{font-size:12px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums}
+.btn--add{min-width:146px}
+
+/* CSS can: a pure-CSS aluminium can, sized entirely by --cw */
+.can2d{--cw:110px;position:relative;width:var(--cw);height:calc(var(--cw)*2.3);flex:none}
+.can2d--float{animation:canFloat 5.5s ease-in-out infinite;animation-delay:var(--delay,0s)}
+@keyframes canFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
+.can2d__top,.can2d__bottom{position:absolute;left:3%;right:3%;height:calc(var(--cw)*.17);border-radius:50%}
+.can2d__top{top:0;background:radial-gradient(ellipse at 50% 40%,#f2f3f7 0%,#c0c5cf 34%,#767b86 70%,#4d525c 100%);box-shadow:inset 0 -2px 4px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.25)}
+.can2d__top::after{content:"";position:absolute;left:18%;right:18%;top:28%;bottom:26%;border-radius:50%;background:radial-gradient(ellipse at 50% 60%,#a2a7b1,#5b606a 72%);box-shadow:inset 0 1px 2px rgba(255,255,255,.35)}
+.can2d__top::before{content:"";position:absolute;left:46%;top:38%;width:10%;height:26%;border-radius:40%;background:#d8dbe2;box-shadow:0 1px 1px rgba(0,0,0,.4);z-index:1}
+.can2d__bottom{bottom:0;background:radial-gradient(ellipse at 50% 60%,#83879a,#3c3f4a 72%);box-shadow:0 10px 22px -6px rgba(0,0,0,.85)}
+.can2d__body{position:absolute;left:0;right:0;top:calc(var(--cw)*.085);bottom:calc(var(--cw)*.085);border-radius:calc(var(--cw)*.14)/calc(var(--cw)*.07);overflow:hidden;background:linear-gradient(90deg,rgba(0,0,0,.66) 0%,rgba(255,255,255,.24) 15%,rgba(255,255,255,.07) 30%,rgba(0,0,0,0) 48%,rgba(0,0,0,.28) 74%,rgba(0,0,0,.74) 100%),linear-gradient(180deg,#1c1a2a 0%,#14121f 15%,var(--c) 30%,var(--c) 60%,var(--cd) 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.can2d__body::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 6%,rgba(255,255,255,.32) 9%,rgba(255,255,255,.08) 15%,transparent 19%);mix-blend-mode:screen}
+.can2d__meta{position:absolute;left:50%;top:4.5%;transform:translateX(-50%);font-size:calc(var(--cw)*.06);letter-spacing:.14em;font-weight:800;color:rgba(255,255,255,.7);white-space:nowrap}
+.can2d__logo{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%) rotate(180deg);writing-mode:vertical-rl;font-family:var(--font-display);font-weight:800;font-size:calc(var(--cw)*.2);letter-spacing:.08em;color:#fff;text-shadow:0 0 calc(var(--cw)*.12) rgba(0,0,0,.35)}
+.can2d__flavor{position:absolute;left:50%;top:79%;transform:translateX(-50%);font-size:calc(var(--cw)*.072);letter-spacing:.06em;font-weight:800;color:rgba(0,0,0,.72);white-space:nowrap}
+.can2d--mini{--cw:44px}
+.can2d--mini .can2d__flavor,.can2d--mini .can2d__meta{display:none}
+.can2d--fly{animation:none!important}
+.is-pop .can2d__body{animation:canPop .6s var(--spring)}
+@keyframes canPop{0%{transform:scale(1)}40%{transform:scale(1.1)}100%{transform:scale(1)}}
+
+/* ---------- Formula ---------- */
+.formula{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,520px);gap:72px;align-items:start}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:36px 32px;margin-top:44px}
+.stat{position:relative;padding-left:20px;border-left:2px solid rgba(var(--accent-rgb),.5);transition:border-color .6s}
+.stat__num{display:flex;align-items:baseline;gap:6px;font-family:var(--font-display);font-weight:800;font-size:clamp(2.2rem,3.8vw,3.2rem);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat__num small{font-family:var(--font-body);font-size:1rem;font-weight:700;color:var(--accent);transition:color .6s}
+.stat__label{display:block;margin-top:10px;font-size:14px;color:var(--muted);max-width:22ch;line-height:1.45}
+.formula__note{margin-top:44px;padding:20px 22px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.03);font-size:14px;color:var(--muted);line-height:1.6;max-width:52ch}
+.formula__note b{color:var(--text);font-weight:700}
+
+/* The lab sheet is the one light surface on the page: a printed
+   certificate of analysis, tilted in 3D. */
+.lab-wrap{perspective:1400px}
+.lab{position:relative;background:var(--paper);color:var(--paper-ink);border-radius:18px;padding:34px 34px 30px;transform:rotateY(-8deg) rotateX(3deg);transform-style:preserve-3d;box-shadow:0 60px 100px -40px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.4) inset;transition:transform .8s var(--ease);will-change:transform}
+.lab-wrap:hover .lab{transform:rotateY(-3deg) rotateX(1deg) translateZ(20px)}
+.lab::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(120deg,transparent 40%,rgba(255,255,255,.55) 50%,transparent 60%);opacity:.6;pointer-events:none}
+.lab__head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding-bottom:18px;border-bottom:2px solid var(--paper-ink)}
+.lab__head h3{font-size:1.15rem;font-weight:800;letter-spacing:-.01em;color:var(--paper-ink)}
+.lab__head p{font-size:12.5px;color:#5a5666;margin-top:6px;line-height:1.5}
+.lab__stamp{flex:none;width:76px;height:76px;border-radius:50%;border:2px solid var(--paper-ink);display:grid;place-items:center;text-align:center;font-size:9px;font-weight:800;letter-spacing:.08em;line-height:1.2;transform:rotate(-12deg) translateZ(30px);color:var(--paper-ink);position:relative}
+.lab__stamp::after{content:"";position:absolute;inset:5px;border-radius:50%;border:1px solid var(--paper-ink)}
+.lab__stamp b{font-size:14px;display:block;letter-spacing:0}
+.ing{list-style:none;margin:0;padding:8px 0 0}
+.ing li{padding:11px 0;border-bottom:1px solid rgba(23,20,34,.12)}
+.ing li:last-child{border-bottom:0}
+.ing__row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:14px;margin-bottom:7px;font-weight:600}
+.ing__row em{font-style:normal;color:#6a6677;font-size:12px;font-weight:500;margin-left:6px}
+.ing__val{font-variant-numeric:tabular-nums;font-weight:800;white-space:nowrap}
+.ing__bar{height:5px;border-radius:3px;background:rgba(23,20,34,.1);overflow:hidden}
+.ing__bar i{display:block;height:100%;border-radius:3px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform 1.4s var(--ease),background .6s;transition-delay:var(--d,0s)}
+.is-in .ing__bar i{transform:scaleX(var(--w))}
+.lab__foot{margin-top:18px;font-size:11px;color:#6a6677;line-height:1.5;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lab__barcode{height:22px;width:112px;background:repeating-linear-gradient(90deg,var(--paper-ink) 0 2px,transparent 2px 4px,var(--paper-ink) 4px 5px,transparent 5px 8px,var(--paper-ink) 8px 11px,transparent 11px 13px)}
+
+/* Lift curve */
+.curve{margin-top:72px;padding:36px 36px 28px;border-radius:var(--r-panel);border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01))}
+.curve__head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.curve__head h3{font-size:1.2rem;font-weight:700}
+.curve__legend{display:flex;gap:22px;font-size:13px;color:var(--muted);font-weight:600}
+.curve__legend span{display:flex;align-items:center;gap:8px}
+.curve__legend i{width:22px;height:3px;border-radius:2px;background:var(--accent)}
+.curve__legend i.is-other{background:repeating-linear-gradient(90deg,rgba(255,255,255,.45) 0 5px,transparent 5px 9px)}
+.curve svg{width:100%;height:auto;display:block;overflow:visible}
+.curve__line{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-dasharray:1500;stroke-dashoffset:1500;transition:stroke-dashoffset 2.4s var(--ease) .2s,stroke .6s}
+.curve__line--other{stroke:rgba(255,255,255,.4);stroke-width:2;stroke-dasharray:7 8;stroke-dashoffset:0;opacity:0;transition:opacity 1s var(--ease) .9s}
+.is-in .curve__line{stroke-dashoffset:0}
+.is-in .curve__line--other{opacity:1}
+.curve__area{fill:url(#curveFill);opacity:0;transition:opacity 1.2s var(--ease) 1s}
+.is-in .curve__area{opacity:1}
+.curve__node circle{fill:var(--bg);stroke:var(--accent);stroke-width:2.5;transition:stroke .6s}
+.curve__node text{fill:var(--muted);font-family:var(--font-body);font-size:12px;font-weight:600}
+.curve__node .lbl-strong{fill:var(--text)}
+.curve__crash{fill:rgba(255,255,255,.45);font-family:var(--font-body);font-size:12px;font-weight:600}
+.curve__hit{cursor:crosshair}
+.curve__scrub{opacity:0;transition:opacity .25s var(--ease);pointer-events:none}
+.curve__scrub.is-active{opacity:1}
+.curve__scrub line{stroke:rgba(255,255,255,.5);stroke-width:1.5;stroke-dasharray:3 4}
+.curve__scrub circle{fill:var(--accent);stroke:#07060f;stroke-width:2;filter:drop-shadow(0 0 8px rgba(var(--accent-rgb),.9))}
+.curve__tip rect{fill:rgba(10,9,20,.92);stroke:var(--line-strong)}
+.curve__tip text{fill:#fff;font-family:var(--font-body);font-size:11px;font-weight:700}
+.curve__tip .curve__tip-time{fill:var(--muted);font-weight:600}
+
+/* ---------- Loadouts (pricing) ---------- */
+.switch{display:inline-flex;align-items:center;gap:14px;font-size:14px;font-weight:700;color:var(--muted);padding:6px 6px 6px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03)}
+.switch__track{width:52px;height:30px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid var(--line-strong);position:relative;transition:background .4s,border-color .4s;flex:none}
+.switch__track::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .45s var(--spring),background .4s}
+.switch.is-on .switch__track{background:var(--accent);border-color:var(--accent)}
+.switch.is-on .switch__track::after{transform:translateX(22px);background:var(--accent-ink)}
+.switch .save{padding:5px 11px;border-radius:999px;background:rgba(var(--accent-rgb),.16);color:var(--accent);font-size:12px;font-weight:800;transition:background .6s,color .6s}
+.switch.is-on{color:var(--text)}
+.loadouts{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:stretch}
+.loadout{display:flex}
+.loadout__body{position:relative;transform:translateZ(30px);padding:38px 32px 32px;display:flex;flex-direction:column;width:100%}
+.loadout--popular .card__surface{border-color:rgba(var(--accent-rgb),.5);box-shadow:0 0 0 1px rgba(var(--accent-rgb),.35),0 50px 90px -30px rgba(var(--accent-rgb),.35);background:linear-gradient(160deg,rgba(var(--accent-rgb),.16),rgba(255,255,255,.02) 55%)}
+.loadout__badge{position:absolute;top:-15px;left:32px;transform:translateZ(70px);background:var(--accent);color:var(--accent-ink);font-size:12px;font-weight:800;padding:7px 14px;border-radius:999px;box-shadow:0 12px 30px -10px rgba(var(--accent-rgb),.8);transition:background .6s}
+.loadout__cans{position:relative;height:120px;display:flex;justify-content:center;align-items:flex-end;transform:translateZ(50px);margin-bottom:8px}
+.loadout__cans .can2d{margin:0 -6px;transform:rotate(var(--rot,0deg)) translateY(var(--ty,0));filter:drop-shadow(0 18px 18px rgba(0,0,0,.6))}
+.loadout__cans .can2d:nth-child(2){--rot:6deg;--ty:-4px}
+.loadout__cans .can2d:nth-child(3){--rot:-7deg;--ty:2px}
+.loadout__cans .can2d:nth-child(1){--rot:-4deg}
+.loadout h3{font-size:1.35rem;margin:6px 0 4px;font-weight:700}
+.loadout__cans-count{font-size:14px;color:var(--muted);font-weight:600}
+.loadout__pricing{margin:24px 0 8px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.loadout__price{font-family:var(--font-display);font-weight:800;font-size:2.4rem;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.loadout__was{font-size:15px;color:var(--muted);text-decoration:line-through;font-variant-numeric:tabular-nums}
+.loadout__was[hidden]{display:none}
+.loadout__per{font-size:13px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums}
+.loadout__list{list-style:none;margin:26px 0 30px;padding:22px 0 0;border-top:1px solid var(--line);display:grid;gap:12px;font-size:14px;color:var(--muted)}
+.loadout__list li{display:flex;align-items:center;gap:10px}
+.loadout__list .icon{color:var(--accent);width:16px;height:16px;transition:color .6s}
+.loadout .btn{margin-top:auto;width:100%}
+
+/* ---------- Stories: quotes as typography, no boxes ---------- */
+.stories{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:56px 48px;align-items:start}
+.story{position:relative;padding-top:28px;border-top:1px solid var(--line)}
+.story--lead{grid-row:span 2}
+.story__q{font-family:var(--font-display);font-weight:500;font-size:1.05rem;line-height:1.5;letter-spacing:-.01em;color:var(--text)}
+.story--lead .story__q{font-size:clamp(1.3rem,2.2vw,1.9rem);line-height:1.35;font-weight:700}
+.story__mark{position:absolute;top:-18px;left:0;width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:var(--bg);border:1px solid var(--line-strong);color:var(--accent);font-family:var(--font-display);font-size:22px;font-weight:800;line-height:1;transition:color .6s}
+.story__who{display:flex;align-items:center;gap:12px;margin-top:22px}
+.story__avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;color:var(--accent-ink);background:linear-gradient(135deg,#fff,var(--av,#9d7bff));flex:none}
+.story__who b{display:block;font-size:14px}
+.story__who span{font-size:12.5px;color:var(--muted)}
+.story__stars{display:flex;gap:2px;margin-top:14px;color:var(--accent);transition:color .6s}
+.story__stars svg{width:14px;height:14px;fill:currentColor}
+
+/* ---------- Newsletter band ---------- */
+.band{position:relative;overflow:hidden;border-radius:var(--r-panel);padding:80px 40px;text-align:center;background:linear-gradient(160deg,rgba(var(--accent-rgb),.2),rgba(255,255,255,.02) 55%,rgba(255,154,60,.08));border:1px solid rgba(var(--accent-rgb),.25);transition:background 1s,border-color 1s}
+.band::before{content:"";position:absolute;left:50%;top:-40%;width:640px;height:640px;transform:translateX(-50%);background:radial-gradient(circle,rgba(var(--accent-rgb),.35),transparent 60%);filter:blur(60px);pointer-events:none;transition:background 1s}
+.band__inner{position:relative}
+.band h2{font-size:clamp(2rem,4.4vw,3.6rem);font-weight:800;letter-spacing:-.03em;line-height:1}
+.band p{color:var(--muted);margin:16px auto 0;max-width:42ch}
+.band form{display:flex;gap:10px;max-width:540px;margin:34px auto 0}
+.band input{flex:1;min-width:0;height:56px;padding:0 24px;border-radius:999px;background:rgba(7,6,15,.5);border:1px solid var(--line-strong);color:#fff;font:inherit;font-weight:600;outline:none;transition:border-color .3s,box-shadow .3s}
+.band input::placeholder{color:var(--muted)}
+.band input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(var(--accent-rgb),.18)}
+.band.is-error input{animation:shake .5s;border-color:#ff6b6b}
+.band__done{display:none;margin-top:34px;font-weight:700;font-size:1.05rem}
+.band__done b{color:var(--accent)}
+.band.is-sent form{display:none}
+.band.is-sent .band__done{display:block;animation:fadeUp .6s var(--ease)}
+.band__fine{margin-top:14px;font-size:12px;color:var(--muted)}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
+/* ---------- Footer ---------- */
+.footer{position:relative;padding:90px 0 36px;margin-top:100px;border-top:1px solid var(--line);background:linear-gradient(180deg,transparent,rgba(0,0,0,.45));overflow:hidden}
+.footer__grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px}
+.footer__brand p{color:var(--muted);font-size:14px;max-width:32ch;margin-top:16px;line-height:1.6}
+.footer h4{font-family:var(--font-body);font-size:13px;font-weight:800;color:var(--text);margin:0 0 18px}
+.footer ul{list-style:none;margin:0;padding:0;display:grid;gap:11px}
+.footer li a,.footer li button{color:var(--muted);font-size:14px;font-weight:500;transition:color .3s,transform .3s var(--ease);display:inline-block}
+.footer li a:hover,.footer li button:hover{color:var(--text);transform:translateX(4px)}
+.footer__social{display:flex;gap:10px;margin-top:22px}
+.footer__social a{width:40px;height:40px;border-radius:50%;border:1px solid var(--line-strong);display:grid;place-items:center;color:var(--muted);transition:color .3s,border-color .3s,transform .4s var(--spring),background .3s}
+.footer__social a:hover{color:var(--accent-ink);background:var(--accent);border-color:var(--accent);transform:translateY(-4px)}
+.footer__social .icon{width:16px;height:16px}
+.footer__bottom{margin-top:64px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);line-height:1.6}
+.footer__bottom p{max-width:70ch}
+.footer__big{font-family:var(--font-display);font-weight:900;font-size:clamp(4.4rem,17vw,16rem);line-height:.78;letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.09);user-select:none;text-align:center;margin-top:70px;pointer-events:none;transform:translateY(12%)}
+
+/* ---------- Cart drawer ---------- */
+.cart-overlay{position:fixed;inset:0;z-index:199;background:rgba(3,2,8,.62);opacity:0;visibility:hidden;transition:opacity .5s var(--ease),visibility .5s;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.cart-overlay.is-open{opacity:1;visibility:visible}
+.cart{position:fixed;top:0;right:0;height:100%;width:min(460px,100%);z-index:200;background:rgba(12,10,22,.94);backdrop-filter:blur(26px);-webkit-backdrop-filter:blur(26px);border-left:1px solid var(--line-strong);transform:translateX(104%);transition:transform .65s var(--ease);display:flex;flex-direction:column;box-shadow:-40px 0 80px -40px rgba(0,0,0,.9)}
+.cart.is-open{transform:none}
+.cart__head{display:flex;align-items:center;justify-content:space-between;padding:22px 26px;border-bottom:1px solid var(--line)}
+.cart__head h2{font-size:1.15rem;font-weight:700;display:flex;align-items:baseline;gap:10px}
+.cart__head h2 span{font-family:var(--font-body);font-size:13px;color:var(--muted);font-weight:600}
+.icon-btn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line-strong);color:var(--muted);transition:color .3s,border-color .3s,transform .4s var(--spring),background .3s}
+.icon-btn:hover{color:var(--text);border-color:rgba(255,255,255,.35);transform:rotate(90deg);background:rgba(255,255,255,.06)}
+.cart__ship{padding:16px 26px 0}
+.ship__msg{font-size:13px;color:var(--muted);font-weight:600}
+.ship__msg b{color:var(--text)}
+.ship__bar{height:4px;border-radius:2px;background:rgba(255,255,255,.08);margin-top:10px;overflow:hidden}
+.ship__bar i{display:block;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .8s var(--ease),background .6s}
+.cart__items{flex:1;overflow:auto;padding:8px 26px 20px;overscroll-behavior:contain}
+.cart__empty{display:none;padding:60px 20px;text-align:center;color:var(--muted)}
+.cart__empty .can2d{margin:0 auto 22px;opacity:.9}
+.cart__empty h3{font-size:1.1rem;color:var(--text);font-weight:700;margin-bottom:8px}
+.cart__empty p{font-size:14px;margin-bottom:22px}
+.cart.is-empty .cart__empty{display:block}
+.cart.is-empty .cart__foot,.cart.is-empty .cart__ship{display:none}
+.cart-item{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line);animation:itemIn .5s var(--ease);transition:opacity .3s,transform .3s}
+.cart-item.is-removing{opacity:0;transform:translateX(24px)}
+@keyframes itemIn{from{opacity:0;transform:translateY(10px)}}
+.cart-item__thumb{width:52px;height:96px;display:grid;place-items:center}
+.cart-item__thumb .can2d{--cw:38px}
+.cart-item__info{display:grid;gap:3px;min-width:0}
+.cart-item__info strong{font-size:14.5px;font-weight:700}
+.cart-item__info span{font-size:12.5px;color:var(--muted)}
+.cart-item__info b{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:4px}
+.cart-item__ctl{display:grid;gap:8px;justify-items:end}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--line-strong);border-radius:999px;overflow:hidden}
+.qty button{width:32px;height:32px;display:grid;place-items:center;color:var(--muted);transition:background .2s,color .2s;font-size:16px;font-weight:700}
+.qty button:hover{background:rgba(255,255,255,.08);color:var(--text)}
+.qty span{min-width:26px;text-align:center;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+.cart-item__rm{font-size:12px;color:var(--muted);font-weight:600;text-decoration:underline;text-underline-offset:3px;transition:color .3s}
+.cart-item__rm:hover{color:#ff8a8a}
+.cart__foot{padding:18px 26px 28px;border-top:1px solid var(--line);background:rgba(255,255,255,.02)}
+.sum{display:grid;gap:8px;font-size:14px;color:var(--muted);font-weight:600}
+.sum div{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.sum .sum__total{color:var(--text);font-size:17px;font-weight:800;padding-top:10px;margin-top:4px;border-top:1px solid var(--line)}
+.cart__foot .btn{width:100%;margin-top:18px}
+.cart__fine{margin-top:12px;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.5}
+.cart__success{position:absolute;inset:0;background:rgba(12,10,22,.98);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;opacity:0;visibility:hidden;transition:opacity .5s var(--ease),visibility .5s;z-index:2}
+.cart__success.is-visible{opacity:1;visibility:visible}
+.cart__success canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.success__check{width:84px;height:84px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;margin-bottom:26px;box-shadow:0 20px 50px -14px rgba(var(--accent-rgb),.9);transform:scale(0)}
+.is-visible .success__check{animation:pop .7s var(--spring) .1s forwards}
+.success__check .icon{width:38px;height:38px;stroke-width:3}
+@keyframes pop{to{transform:scale(1)}}
+.cart__success h3{font-size:1.5rem;font-weight:800;letter-spacing:-.02em}
+.cart__success p{color:var(--muted);font-size:14.5px;margin-top:10px;line-height:1.6;max-width:32ch}
+.cart__success p b{color:var(--text);font-variant-numeric:tabular-nums}
+.cart__success .btn{margin-top:28px;position:relative;z-index:1}
+
+/* ---------- Toasts ---------- */
+.toasts{position:fixed;right:24px;bottom:24px;z-index:300;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.toast{display:flex;align-items:center;gap:12px;padding:13px 18px 13px 14px;border-radius:14px;background:rgba(18,15,34,.92);border:1px solid var(--line-strong);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 24px 50px -20px #000;animation:toastIn .55s var(--spring);font-size:14px;font-weight:700;max-width:min(360px,calc(100vw - 48px))}
+.toast.is-out{animation:toastOut .4s var(--ease) forwards}
+.toast i{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);flex:none}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px) scale(.95)}}
+@keyframes toastOut{to{opacity:0;transform:translateY(12px) scale(.96)}}
+
+/* ---------- Overclock (easter egg) ---------- */
+.is-overclock .hero__floor{animation-duration:.6s}
+.is-overclock .marquee__track{animation-duration:6s}
+.is-overclock .hero__ring::before{animation-duration:3s}
+
+/* ---------- Responsive ---------- */
+@media (max-width:1100px){
+  .flavor-grid{grid-template-columns:repeat(2,1fr);gap:80px 24px}
+  .features{grid-template-columns:1fr 1fr}
+  .feature:nth-child(3){grid-column:1/-1;border-left:0;padding-left:0;border-top:1px solid var(--line)}
+  .stories{grid-template-columns:1fr 1fr}
+  .story--lead{grid-column:1/-1;grid-row:auto}
+  .formula{grid-template-columns:1fr;gap:56px}
+  .lab{transform:none}
+  .lab-wrap:hover .lab{transform:translateZ(10px)}
+}
+@media (max-width:900px){
+  .hero{padding-top:130px;min-height:auto}
+  .hero__inner{grid-template-columns:1fr;gap:20px}
+  .hero__stage{height:min(62vh,520px);order:-1;margin-top:-10px}
+  .hero__title{font-size:clamp(3rem,13vw,5.6rem)}
+  .chip--1{left:0;top:8%}
+  .chip--2{right:0;top:28%}
+  .chip--3{left:2%;bottom:6%}
+  .section{padding:96px 0}
+  .section__head{grid-template-columns:1fr;gap:18px;margin-bottom:56px}
+  .loadouts{grid-template-columns:1fr;max-width:520px}
+  .footer__grid{grid-template-columns:1fr 1fr}
+  .nav__links{display:none}
+  .nav__toggle{display:block}
+  .cart-btn span.cart-btn__label{display:none}
+  .cart-btn{padding-left:12px}
+}
+@media (max-width:640px){
+  .container{width:calc(100% - 32px)}
+  .nav{top:12px;width:calc(100% - 24px);padding-left:16px}
+  .hero__stage{height:440px}
+  .hero__ring{width:82vw}
+  .chip{padding:8px 12px 8px 8px}
+  .chip__txt b{font-size:13px}
+  .chip__ico{width:30px;height:30px}
+  .chip--2{top:70%;right:-4%}
+  .chip--3{display:none}
+  .hero__cta .magnet,.hero__cta .btn{width:100%}
+  .hero__cta .btn{justify-content:center}
+  .features{grid-template-columns:1fr}
+  .feature{padding:36px 0 0;border-left:0}
+  .feature+.feature{padding-left:0;border-left:0;border-top:1px solid var(--line)}
+  .flavor-grid{grid-template-columns:1fr;gap:88px}
+  .stats{grid-template-columns:1fr 1fr;gap:28px 20px}
+  .lab{padding:26px 22px}
+  .curve{padding:26px 18px 18px}
+  .curve__head{margin-bottom:16px}
+  .stories{grid-template-columns:1fr;gap:48px}
+  .band{padding:60px 22px;border-radius:22px}
+  .band form{flex-direction:column}
+  .footer__grid{grid-template-columns:1fr}
+  .toasts{right:16px;left:16px;bottom:16px;align-items:stretch}
+  .toast{max-width:none}
+  .card__surface{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(18,15,34,.86)}
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+  .hero__fade,.hero__stage{opacity:1;transform:none}
+  .hero__title .c{opacity:1;transform:none}
+  [data-reveal]{opacity:1;transform:none;filter:none}
+  .ing__bar i{transform:scaleX(var(--w))}
+  .curve__line{stroke-dashoffset:0}
+  .curve__line--other,.curve__area{opacity:1}
+}
+
+.hero__pills{display:flex;flex-wrap:wrap;gap:10px}
+.cart.is-empty .cart__items{display:none}
+.cart__empty{display:none;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:60px 20px}
+.cart.is-empty .cart__empty{display:flex}
+.feature:hover .feature__ico{animation:none}
+</style>
+</head>
+<body>
+
+<!-- Icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 14.5l4.5-4.5 4.5 4.5"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 4 13c0-4 3-7 7-8 4-1 7.5-2 9-3-1 2-2 6-2 9a7 7 0 0 1-7 9z"/><path d="M4 20c2-4 5-7 9-9"/></symbol>
+  <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l4.5 4.5L19 7"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 8h12l1 13H5L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/></symbol>
+  <symbol id="i-ig" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-yt" viewBox="0 0 24 24"><path d="M3 8.5C3 6 4.5 5 7 5h10c2.5 0 4 1 4 3.5v7c0 2.5-1.5 3.5-4 3.5H7c-2.5 0-4-1-4-3.5z"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H9l-5 4z"/></symbol>
+</svg>
+
+<!-- Loader -->
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader__inner">
+    <svg class="loader__mark"><use href="#i-mark"/></svg>
+    <div class="loader__word">LEVITY</div>
+    <div class="loader__bar"><i></i></div>
+  </div>
+</div>
+
+<!-- Background layers -->
+<canvas class="bg-particles" id="bg" aria-hidden="true"></canvas>
+<div class="bg-noise" aria-hidden="true"></div>
+<div class="progress" id="progress" aria-hidden="true"></div>
+<div class="cursor-dot" aria-hidden="true"></div>
+<div class="cursor-ring" aria-hidden="true"></div>
+
+<!-- Nav -->
+<header class="nav" id="nav">
+  <a class="nav__logo" href="#top" aria-label="Levity home"><svg class="nav__mark"><use href="#i-mark"/></svg>LEVITY</a>
+  <nav aria-label="Primary">
+    <ul class="nav__links">
+      <li><a href="#flavors">Flavors</a></li>
+      <li><a href="#formula">Formula</a></li>
+      <li><a href="#loadouts">Loadouts</a></li>
+      <li><a href="#stories">Stories</a></li>
+    </ul>
+  </nav>
+  <div class="nav__right">
+    <button class="cart-btn" id="cartBtn" type="button" aria-label="Open cart">
+      <svg class="icon"><use href="#i-bag"/></svg><span class="cart-btn__label">Cart</span><span class="cart-btn__count" id="cartCount">0</span>
+    </button>
+    <button class="nav__toggle" id="navToggle" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span></button>
+  </div>
+</header>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#flavors" style="--i:0">Flavors</a>
+  <a href="#formula" style="--i:1">Formula</a>
+  <a href="#loadouts" style="--i:2">Loadouts</a>
+  <a href="#stories" style="--i:3">Stories</a>
+  <a href="#join" style="--i:4">Join the list</a>
+</div>
+
+<main class="page">
+
+  <!-- ===================== HERO ===================== -->
+  <section class="hero" id="top">
+    <div class="hero__orb-wrap hero__orb-wrap--a"><div class="hero__orb hero__orb--a" aria-hidden="true"></div></div>
+    <div class="hero__orb-wrap hero__orb-wrap--b"><div class="hero__orb hero__orb--b" aria-hidden="true"></div></div>
+    <div class="hero__floor" aria-hidden="true"></div>
+    <div class="hero__ghost" id="heroGhost" aria-hidden="true">LEVITY</div>
+
+    <div class="container hero__inner">
+      <div class="hero__copy">
+        <div class="hero__note hero__fade" style="--d:.1s"><b>New</b>Cryo Mint just landed in every loadout</div>
+        <h1 class="hero__title" data-split aria-label="Defy gravity"><span class="line">DEFY</span><span class="line line--accent">GRAVITY</span></h1>
+        <p class="hero__lead hero__fade" style="--d:.95s"><strong>200 mg of clean caffeine, zero sugar, a six-hour lift with no crash.</strong> Made for the people who ship, grind and race past midnight, then still have to be a person the next morning.</p>
+        <div class="hero__cta hero__fade" style="--d:1.1s">
+          <span class="magnet" data-magnetic>
+            <button class="btn btn--primary" id="heroAdd" type="button">
+              <span class="btn__label"><svg class="icon"><use href="#i-bag"/></svg>Add 12-pack, $29.99</span>
+              <span class="btn__state btn__state--loading"><i></i></span>
+              <span class="btn__state btn__state--done"><svg class="icon"><use href="#i-check"/></svg>Added</span>
+            </button>
+          </span>
+          <span class="magnet" data-magnetic><a class="btn btn--ghost" href="#flavors"><span class="btn__label">See the flavors</span></a></span>
+        </div>
+        <div class="hero__pour hero__fade" style="--d:1.25s">
+          <p class="hero__pour-label">Pouring <span id="heroFlavorName">Void Berry</span></p>
+          <div class="hero__pills" id="heroFlavors" role="group" aria-label="Choose a flavor"></div>
+        </div>
+      </div>
+
+      <div class="hero__stage" id="heroStage">
+        <div class="hero__stage-inner" id="stageInner">
+          <div class="hero__ring" aria-hidden="true"></div>
+          <canvas id="can3d" aria-label="A can of Levity in 3D. Drag to spin it."></canvas>
+          <div class="hero__shadow" id="heroShadow" aria-hidden="true"></div>
+          <div class="hero__fallback" aria-hidden="true">
+            <div class="can2d can2d--float" style="--cw:190px;--c:#9d7bff;--cd:#2a1170"><div class="can2d__top"></div><div class="can2d__body"><span class="can2d__meta">ZERO SUGAR</span><span class="can2d__logo">LEVITY</span><span class="can2d__flavor">Void Berry</span></div><div class="can2d__bottom"></div></div>
+          </div>
+          <div class="chip chip--1"><span class="chip__ico"><svg class="icon"><use href="#i-bolt"/></svg></span><span class="chip__txt"><b>200 mg</b><span>clean caffeine</span></span></div>
+          <div class="chip chip--2"><span class="chip__ico"><svg class="icon"><use href="#i-leaf"/></svg></span><span class="chip__txt"><b>0 g sugar</b><span>10 calories per can</span></span></div>
+          <div class="chip chip--3"><span class="chip__ico"><svg class="icon"><use href="#i-drop"/></svg></span><span class="chip__txt"><b>6 h lift</b><span>soft landing, no crash</span></span></div>
+          <div class="hero__hint" aria-hidden="true">Drag the can to spin it</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Claims strip: the words printed around the can -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track">
+      <div class="marquee__item"><span>Zero sugar</span><i></i><span>200 mg caffeine</span><i></i><span>Six-hour lift</span><i></i><span>No crash</span><i></i><span>L-theanine paced</span><i></i><span>Electrolytes included</span><i></i><span>Lab verified, every batch</span><i></i></div>
+      <div class="marquee__item"><span>Zero sugar</span><i></i><span>200 mg caffeine</span><i></i><span>Six-hour lift</span><i></i><span>No crash</span><i></i><span>L-theanine paced</span><i></i><span>Electrolytes included</span><i></i><span>Lab verified, every batch</span><i></i></div>
+    </div>
+  </div>
+
+  <!-- ===================== LIFT ===================== -->
+  <section class="section" id="lift">
+    <div class="container section__inner">
+      <div class="section__head">
+        <h2 class="section__title" data-reveal>Engineered for lift, not for the spike.</h2>
+        <p class="section__desc" data-reveal style="--d:.1s">Most energy drinks are sugar with a caffeine chaser. Levity is the caffeine you actually want, the amino that smooths it, and the electrolytes that keep you in the chair.</p>
+      </div>
+      <div class="features" data-reveal>
+        <div class="feature" data-tilt="7">
+          <div class="feature__ico"><svg class="icon"><use href="#i-bolt"/></svg></div>
+          <h3>Clean caffeine, paced by theanine</h3>
+          <p>200 mg from green coffee, paired with 100 mg of L-theanine so the lift arrives smooth and leaves the same way.</p>
+        </div>
+        <div class="feature" data-tilt="7" style="--delay:-2.3s">
+          <div class="feature__ico"><svg class="icon"><use href="#i-leaf"/></svg></div>
+          <h3>Zero sugar, ten calories</h3>
+          <p>Sweetened with allulose and stevia. No syrup, no 3 p.m. cliff, nothing on the label you'd want to hide.</p>
+        </div>
+        <div class="feature" data-tilt="7" style="--delay:-4.6s">
+          <div class="feature__ico"><svg class="icon"><use href="#i-drop"/></svg></div>
+          <h3>Electrolytes in the mix</h3>
+          <p>Sodium, potassium and magnesium, because a lift that dehydrates you is just borrowing from tomorrow.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FLAVORS ===================== -->
+  <section class="section" id="flavors">
+    <div class="section__ghost" data-depth=".25" aria-hidden="true">FLAVORS</div>
+    <div class="container section__inner">
+      <div class="section__head">
+        <h2 class="section__title" data-reveal>Eight flavors, one altitude.</h2>
+        <p class="section__desc" data-reveal style="--d:.1s">Every can carries the same 200 mg formula. Pick the profile that fits the session, or mix them in a loadout below.</p>
+      </div>
+      <div class="flavor-grid" id="flavorGrid"></div>
+    </div>
+  </section>
+
+  <!-- ===================== FORMULA ===================== -->
+  <section class="section" id="formula">
+    <div class="section__ghost" data-depth=".2" aria-hidden="true">FORMULA</div>
+    <div class="container section__inner">
+      <div class="formula">
+        <div>
+          <h2 class="section__title" data-reveal>Every milligram, on the label.</h2>
+          <p class="section__desc" data-reveal style="--d:.1s;margin-top:22px">No proprietary blend, no rounding. What's on the sheet is what's in the can, verified batch by batch.</p>
+          <div class="stats" data-reveal style="--d:.2s">
+            <div class="stat"><span class="stat__num"><b data-count="200">0</b><small>mg</small></span><span class="stat__label">Caffeine per can. About two espressos.</span></div>
+            <div class="stat"><span class="stat__num"><b data-count="0">0</b><small>g</small></span><span class="stat__label">Sugar. A typical can carries 39 g.</span></div>
+            <div class="stat"><span class="stat__num"><b data-count="10">0</b><small>kcal</small></span><span class="stat__label">Calories, if you're counting.</span></div>
+            <div class="stat"><span class="stat__num"><b data-count="6">0</b><small>hrs</small></span><span class="stat__label">Of lift before a soft landing.</span></div>
+          </div>
+          <div class="formula__note" data-reveal style="--d:.3s"><b>Who it's for:</b> healthy adults. A can holds 80 mg of caffeine per 100 ml, so we cap the advice at two a day and skip it entirely if you're pregnant, under 18 or caffeine-sensitive.</div>
+        </div>
+
+        <div class="lab-wrap" data-reveal style="--d:.15s">
+          <div class="lab" data-tilt="6" data-tilt-base="-8,3">
+            <div class="lab__head">
+              <div>
+                <h3>Certificate of analysis</h3>
+                <p>Levity, 250 ml. Batch LV-2609. Sampled 14 Aug 2026, tested by an independent lab.</p>
+              </div>
+              <div class="lab__stamp"><span><b>PASS</b>batch<br>LV-2609</span></div>
+            </div>
+            <ul class="ing">
+              <li><div class="ing__row"><span>Caffeine<em>green coffee</em></span><span class="ing__val">200 mg</span></div><div class="ing__bar"><i style="--w:.8;--d:0s"></i></div></li>
+              <li><div class="ing__row"><span>L-theanine</span><span class="ing__val">100 mg</span></div><div class="ing__bar"><i style="--w:.5;--d:.1s"></i></div></li>
+              <li><div class="ing__row"><span>Taurine</span><span class="ing__val">1,000 mg</span></div><div class="ing__bar"><i style="--w:.9;--d:.2s"></i></div></li>
+              <li><div class="ing__row"><span>B vitamins<em>B3, B6, B12</em></span><span class="ing__val">100% RI</span></div><div class="ing__bar"><i style="--w:.7;--d:.3s"></i></div></li>
+              <li><div class="ing__row"><span>Electrolytes<em>sodium, potassium, magnesium</em></span><span class="ing__val">320 mg</span></div><div class="ing__bar"><i style="--w:.6;--d:.4s"></i></div></li>
+              <li><div class="ing__row"><span>Sugar</span><span class="ing__val">0 g</span></div><div class="ing__bar"><i style="--w:.015;--d:.5s"></i></div></li>
+            </ul>
+            <div class="lab__foot"><span>Carbonated water, citric acid, natural flavors, allulose, stevia leaf extract.</span><div class="lab__barcode" aria-hidden="true"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="curve" data-reveal>
+        <div class="curve__head">
+          <h3>The lift curve</h3>
+          <div class="curve__legend"><span><i></i>Levity</span><span><i class="is-other"></i>Typical 39 g sugar can</span></div>
+        </div>
+        <svg viewBox="0 0 800 244" id="curveSvg" role="img" aria-label="Levity rises over 45 minutes and lands softly after six hours. A typical sugar drink spikes in 15 minutes and crashes within the hour. Hover or drag along the chart to scrub through the timeline.">
+          <defs>
+            <linearGradient id="curveFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" style="stop-color:var(--accent);stop-opacity:.28"/>
+              <stop offset="1" style="stop-color:var(--accent);stop-opacity:0"/>
+            </linearGradient>
+          </defs>
+          <path class="curve__area" d="M0 200 C 60 200 80 80 180 70 C 260 62 320 58 400 68 C 520 82 640 120 800 160 L 800 200 Z"/>
+          <path class="curve__line curve__line--other" d="M0 200 C 40 200 50 45 110 45 C 170 45 170 208 260 214 L 800 214"/>
+          <path class="curve__line" id="curveMain" d="M0 200 C 60 200 80 80 180 70 C 260 62 320 58 400 68 C 520 82 640 120 800 160"/>
+          <g class="curve__node"><circle cx="0" cy="200" r="5"/><text x="6" y="232">0 min, first sip</text></g>
+          <g class="curve__node"><circle cx="180" cy="70" r="5"/><text x="180" y="50" text-anchor="middle">15 min, onset</text></g>
+          <g class="curve__node"><circle cx="400" cy="68" r="5"/><text x="400" y="46" text-anchor="middle" class="lbl-strong">45 min, peak focus</text></g>
+          <g class="curve__node"><circle cx="800" cy="160" r="5"/><text x="792" y="140" text-anchor="end">6 h, soft landing</text></g>
+          <text class="curve__crash" x="280" y="236">the crash, around minute 50</text>
+          <g class="curve__scrub" id="curveScrub" aria-hidden="true">
+            <line x1="0" y1="0" x2="0" y2="200"></line>
+            <circle r="6"></circle>
+            <g class="curve__tip" transform="translate(0,0)">
+              <rect x="-58" y="-46" width="116" height="34" rx="9"></rect>
+              <text class="curve__tip-time" x="0" y="-30" text-anchor="middle">0 min</text>
+              <text class="curve__tip-lvl" x="0" y="-16" text-anchor="middle">Lift 0%</text>
+            </g>
+          </g>
+          <rect class="curve__hit" x="0" y="0" width="800" height="244" fill="transparent"></rect>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== LOADOUTS ===================== -->
+  <section class="section" id="loadouts">
+    <div class="section__ghost" data-depth=".22" aria-hidden="true">LOADOUT</div>
+    <div class="container section__inner">
+      <div class="section__head">
+        <h2 class="section__title" data-reveal>Pick your loadout.</h2>
+        <div data-reveal style="--d:.1s">
+          <p class="section__desc">Flat-rate shipping, free over $40. Subscriptions pause or cancel in one tap, no retention maze.</p>
+          <button class="switch" id="subToggle" type="button" role="switch" aria-checked="false" style="margin-top:22px"><span>Subscribe monthly</span><span class="switch__track" aria-hidden="true"></span><span class="save">Save 15%</span></button>
+        </div>
+      </div>
+      <div class="loadouts">
+        <div data-reveal>
+          <article class="card loadout" data-tilt="7" data-loadout="solo" data-name="Solo" data-cans="12" data-price="29.99">
+            <div class="card__surface"><div class="glare"></div></div>
+            <div class="loadout__body">
+              <div class="loadout__cans" data-plx="1.4"><div class="can2d can2d--mini" style="--c:#9d7bff;--cd:#2a1170"><div class="can2d__top"></div><div class="can2d__body"><span class="can2d__logo">LEVITY</span></div><div class="can2d__bottom"></div></div></div>
+              <h3>Solo</h3>
+              <span class="loadout__cans-count">12 cans, one flavor</span>
+              <div class="loadout__pricing"><span class="loadout__price">$29.99</span><span class="loadout__was" hidden>$29.99</span></div>
+              <span class="loadout__per">$2.50 per can</span>
+              <ul class="loadout__list">
+                <li><svg class="icon"><use href="#i-check"/></svg>Any single flavor</li>
+                <li><svg class="icon"><use href="#i-check"/></svg>Flat $4.99 shipping</li>
+                <li><svg class="icon"><use href="#i-check"/></svg>Pause or cancel anytime</li>
+              </ul>
+              <button class="btn btn--ghost" type="button" data-add-loadout>
+                <span class="btn__label"><svg class="icon"><use href="#i-plus"/></svg>Add to cart</span>
+                <span class="btn__state btn__state--loading"><i></i></span>
+                <span class="btn__state btn__state--done"><svg class="icon"><use href="#i-check"/></svg>Added</span>
+              </button>
+            </div>
+          </article>
+        </div>
+        <div data-reveal style="--d:.1s">
+          <article class="card loadout loadout--popular" data-tilt="7" data-loadout="squad" data-name="Squad" data-cans="24" data-price="54.99">
+            <div class="card__surface"><div class="glare"></div></div>
+            <div class="loadout__body">
+              <span class="loadout__badge">Most popular</span>
+              <div class="loadout__cans" data-plx="1.4">
+                <div class="can2d can2d--mini" style="--c:#9d7bff;--cd:#2a1170"><div class="can2d__top"></div><div class="can2d__body"><span class="can2d__logo">LEVITY</span></div><div class="can2d__bottom"></div></div>
+                <div class="can2d can2d--mini" style="--c:#d4ff4a;--cd:#3f6b00"><div class="can2d__top"></div><div class="can2d__body"><span class="can2d__logo">LEVITY</span></div><div class="can2d__bottom"></div></div>
+              </div>
+              <h3>Squad</h3>
+              <span class="loadout__cans-count">24 cans, two flavors</span>
+              <div class="loadout__pricing"><span class="loadout__price">$54.99</span><span class="loadout__was" hidden>$54.99</span></div>
+              <span class="loadout__per">$2.29 per can</span>
+              <ul class="loadout__list">
+                <li><svg class="icon"><use href="#i-check"/></svg>Pick any two flavors</li>
+                <li><svg class="icon"><use href="#i-check"/></svg>Free shipping</li>
+                <li><svg class="icon"><use href="#i-check"/></svg>First access to limited drops</li>
+              </ul>
+              <button class="btn btn--primary" type="button" data-add-loadout>
+                <span class="btn__label"><svg class="icon"><use href="#i-plus"/></svg>Add to cart</span>
+                <span class="btn__state btn__state--loading"><i></i></span>
+                <span class="btn__state btn__state--done"><svg class="icon"><use href="#i-check"/></svg>Added</span>
+              </button>
+            </div>
+          </article>
+        </div>
+        <div data-reveal style="--d:.2s">
+          <article class="card loadout" data-tilt="7" data-loadout="guild" data-name="Guild" data-cans="48" data-price="99.99">
+            <div class="card__surface"><div class="glare"></div></div>
+            <div class="loadout__body">
+              <div class="loadout__cans" data-plx="1.4">
+                <div class="can2d can2d--mini" style="--c:#ff9a3c;--cd:#7a2a00"><div class="can2d__top"></div><div class="can2d__body"><span class="can2d__logo">LEVITY</span></div><div class="can2d__bottom"></div></div>
+                <div class="can2d can2d--mini" style="--c:#9d7bff;--cd:#2a1170"><div class="can2d__top"></div><div class="can2d__body"><span class="can2d__logo">LEVITY</span></div><div class="can2d__bottom"></div></div>
+                <div class="can2d can2d--mini" style="--c:#4df0e0;--cd:#005f66"><div class="can2d__top"></div><div class="can2d__body"><span class="can2d__logo">LEVITY</span></div><div class="can2d__bottom"></div></div>
+              </div>
+              <h3>Guild</h3>
+              <span class="loadout__cans-count">48 cans, all eight flavors</span>
+              <div class="loadout__pricing"><span class="loadout__price">$99.99</span><span class="loadout__was" hidden>$99.99</span></div>
+              <span class="loadout__per">$2.08 per can</span>
+              <ul class="loadout__list">
+                <li><svg class="icon"><use href="#i-check"/></svg>Six of each flavor</li>
+                <li><svg class="icon"><use href="#i-check"/></svg>Free shipping</li>
+                <li><svg class="icon"><use href="#i-check"/></svg>Team code for 10% off refills</li>
+              </ul>
+              <button class="btn btn--ghost" type="button" data-add-loadout>
+                <span class="btn__label"><svg class="icon"><use href="#i-plus"/></svg>Add to cart</span>
+                <span class="btn__state btn__state--loading"><i></i></span>
+                <span class="btn__state btn__state--done"><svg class="icon"><use href="#i-check"/></svg>Added</span>
+              </button>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== STORIES ===================== -->
+  <section class="section" id="stories">
+    <div class="section__ghost" data-depth=".2" aria-hidden="true">REPORTS</div>
+    <div class="container section__inner">
+      <div class="section__head">
+        <h2 class="section__title" data-reveal>Field reports.</h2>
+        <p class="section__desc" data-reveal style="--d:.1s">From the people who drink it at hours we don't officially recommend.</p>
+      </div>
+      <div class="stories">
+        <div class="story story--lead" data-reveal>
+          <span class="story__mark" aria-hidden="true">&ldquo;</span>
+          <p class="story__q">Six hours of focus and I didn't feel like a wrung-out towel after. Void Berry is the 3 a.m. queue drink now, nothing else comes close.</p>
+          <div class="story__stars" aria-label="5 out of 5 stars"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></div>
+          <div class="story__who"><span class="story__avatar" style="--av:#9d7bff">RS</span><div><b>Riya S.</b><span>Radiant rank, chronic late queuer</span></div></div>
+        </div>
+        <div class="story" data-reveal style="--d:.1s">
+          <span class="story__mark" aria-hidden="true">&ldquo;</span>
+          <p class="story__q">I stopped drinking the sugar bombs. Solar Mango got me through a fourteen-hour deploy and I slept fine after.</p>
+          <div class="story__stars" aria-label="5 out of 5 stars"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></div>
+          <div class="story__who"><span class="story__avatar" style="--av:#ff9a3c">MD</span><div><b>Marcus D.</b><span>Backend engineer</span></div></div>
+        </div>
+        <div class="story" data-reveal style="--d:.2s">
+          <span class="story__mark" aria-hidden="true">&ldquo;</span>
+          <p class="story__q">Cryo Mint before a tempo run. Clean lift, no stomach drama, no jitters at kilometre eight.</p>
+          <div class="story__stars" aria-label="5 out of 5 stars"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></div>
+          <div class="story__who"><span class="story__avatar" style="--av:#4df0e0">AP</span><div><b>Ana P.</b><span>Marathoner</span></div></div>
+        </div>
+        <div class="story" data-reveal style="--d:.3s">
+          <span class="story__mark" aria-hidden="true">&ldquo;</span>
+          <p class="story__q">We keep the Guild loadout in the studio fridge. Everyone gets a flavor, nobody gets the four o'clock crash.</p>
+          <div class="story__stars" aria-label="4 out of 5 stars"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></div>
+          <div class="story__who"><span class="story__avatar" style="--av:#d4ff4a">DK</span><div><b>Dev K.</b><span>Runs a twelve-person studio</span></div></div>
+        </div>
+        <div class="story" data-reveal style="--d:.4s">
+          <p class="story__q" style="font-size:clamp(2.4rem,4vw,3.4rem);font-weight:800;line-height:1;letter-spacing:-.03em"><b data-count="4.9" data-decimals="1">0</b><span style="font-size:.5em;color:var(--muted);font-weight:500"> / 5</span></p>
+          <div class="story__who"><div><b>Average across 2,318 reviews</b><span>Verified buyers, last twelve months</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== JOIN ===================== -->
+  <section class="section" id="join" style="padding-top:10px">
+    <div class="container">
+      <div class="band" id="band" data-reveal>
+        <div class="band__inner">
+          <h2>Join the Zero-G list.</h2>
+          <p>Limited drops, restocks and the occasional formula update. One email a month, unsubscribe in one click.</p>
+          <form id="newsletter" novalidate>
+            <label class="sr-only" for="email">Email address</label>
+            <input id="email" name="email" type="email" placeholder="you@domain.com" autocomplete="email" required>
+            <button class="btn btn--light" type="submit"><span class="btn__label">Join the list</span></button>
+          </form>
+          <p class="band__done">You're on the list. <b>Watch your inbox.</b></p>
+          <p class="band__fine">No spam, no selling your address, no 6 a.m. pings.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <a class="nav__logo" href="#top" aria-label="Levity home"><svg class="nav__mark"><use href="#i-mark"/></svg>LEVITY</a>
+          <p>Zero-sugar energy engineered for lift. Brewed, canned and shipped by people who also drink it at 2 a.m.</p>
+          <div class="footer__social">
+            <a href="#" aria-label="Instagram"><svg class="icon"><use href="#i-ig"/></svg></a>
+            <a href="#" aria-label="YouTube"><svg class="icon"><use href="#i-yt"/></svg></a>
+            <a href="#" aria-label="Community chat"><svg class="icon"><use href="#i-chat"/></svg></a>
+          </div>
+        </div>
+        <div>
+          <h4>Shop</h4>
+          <ul><li><a href="#flavors">Void Berry</a></li><li><a href="#flavors">Plasma Citrus</a></li><li><a href="#flavors">Solar Mango</a></li><li><a href="#flavors">Cryo Mint</a></li><li><a href="#loadouts">Loadouts</a></li></ul>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <ul><li><a href="#formula">Formula</a></li><li><a href="#stories">Field reports</a></li><li><a href="#">Careers</a></li><li><a href="#">Press kit</a></li></ul>
+        </div>
+        <div>
+          <h4>Help</h4>
+          <ul><li><a href="#">Shipping and returns</a></li><li><a href="#">Track an order</a></li><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li></ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>&copy; 2026 Levity Beverage Co. Contains 80 mg of caffeine per 100 ml. Not recommended for children, pregnant or breastfeeding women, or people sensitive to caffeine. Please recycle the can.</p>
+        <span>Drink responsibly. Then ship it.</span>
+      </div>
+      <div class="footer__big" aria-hidden="true">LEVITY</div>
+    </div>
+  </footer>
+
+</main>
+
+<!-- ===================== CART ===================== -->
+<div class="cart-overlay" id="cartOverlay"></div>
+<aside class="cart is-empty" id="cart" aria-hidden="true" aria-label="Your cart">
+  <div class="cart__head">
+    <h2>Your cart <span id="cartHeadCount">0 items</span></h2>
+    <button class="icon-btn" id="cartClose" type="button" aria-label="Close cart"><svg class="icon"><use href="#i-close"/></svg></button>
+  </div>
+  <div class="cart__ship">
+    <p class="ship__msg" id="shipMsg"></p>
+    <div class="ship__bar"><i id="shipBar"></i></div>
+  </div>
+  <div class="cart__items" id="cartItems"></div>
+  <div class="cart__empty" id="cartEmpty">
+    <div class="can2d can2d--mini can2d--float" style="--cw:56px;--c:#9d7bff;--cd:#2a1170"><div class="can2d__top"></div><div class="can2d__body"><span class="can2d__logo">LEVITY</span></div><div class="can2d__bottom"></div></div>
+    <h3>Nothing in orbit yet.</h3>
+    <p>Add a flavor or a loadout and it shows up here.</p>
+    <a class="btn btn--sm btn--ghost" href="#flavors" data-close-cart><span class="btn__label">Browse flavors</span></a>
+  </div>
+  <div class="cart__foot">
+    <div class="sum">
+      <div><span>Subtotal</span><span id="sumSub">$0.00</span></div>
+      <div><span>Shipping</span><span id="sumShip">&mdash;</span></div>
+      <div class="sum__total"><span>Total</span><span id="sumTotal">$0.00</span></div>
+    </div>
+    <button class="btn btn--primary" id="checkoutBtn" type="button">
+      <span class="btn__label">Place order</span>
+      <span class="btn__state btn__state--loading"><i></i>Processing</span>
+    </button>
+    <p class="cart__fine">Demo checkout. No payment is taken and nothing ships, yet.</p>
+  </div>
+  <div class="cart__success" id="cartSuccess" aria-live="polite">
+    <canvas id="confetti" aria-hidden="true"></canvas>
+    <div class="success__check"><svg class="icon"><use href="#i-check"/></svg></div>
+    <h3>Order placed</h3>
+    <p>Order <b id="orderId">LV-000000</b> is prepping for launch. <b id="orderTotal">$0.00</b> charged, delivery in two to four days.</p>
+    <button class="btn btn--light btn--sm" id="continueBtn" type="button"><span class="btn__label">Keep browsing</span></button>
+  </div>
+</aside>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+'use strict';
+
+/* ==================================================================
+   Config and catalogue
+   Change CONFIG.currency to '₹' (and the prices) to localise.
+   ================================================================== */
+const CONFIG = { currency: '$', shippingFlat: 4.99, freeShippingOver: 40, subscriptionDiscount: 0.15 };
+
+const FLAVORS = [
+  { id: 'void',    name: 'Void Berry',       notes: 'Blackberry and açaí',      color: '#9d7bff', dark: '#2a1170', desc: 'Deep, dark berries with a cold, clean edge. Best consumed with the lights off.' },
+  { id: 'plasma',  name: 'Plasma Citrus',    notes: 'Lime and yuzu',            color: '#d4ff4a', dark: '#3f6b00', desc: 'Sharp lime and yuzu with a static-electric finish. The one the ranked crowd swears by.' },
+  { id: 'solar',   name: 'Solar Mango',      notes: 'Mango and chili',          color: '#ff9a3c', dark: '#7a2a00', desc: 'Ripe mango with a slow chili burn. Built for daylight sessions and long deploys.' },
+  { id: 'cryo',    name: 'Cryo Mint',        notes: 'Mint and white peach',     color: '#4df0e0', dark: '#005f66', desc: 'Frost-cold mint over white peach. A full reset in one sip.' },
+  { id: 'static',  name: 'Static Peach',     notes: 'Pink guava and peach',     color: '#ff6fa8', dark: '#6a0035', desc: 'Pink guava crashed into ripe peach, with a faint electric tingle on the finish. Built for the drop.' },
+  { id: 'frost',   name: 'Frostbite Cola',   notes: 'Cola and blue raspberry',  color: '#4fb6ff', dark: '#002f52', desc: 'Classic cola dipped in liquid nitrogen, with a blue raspberry undertow. Tastes like the arcade at 1 a.m.' },
+  { id: 'night',   name: 'Nightshift Grape', notes: 'Concord grape and cassis', color: '#b34dff', dark: '#33005c', desc: 'Concord grape and blackcurrant, deep and a little moody. Made for the graveyard shift.' },
+  { id: 'ember',   name: 'Ember Blood Orange', notes: 'Blood orange and ginger', color: '#ff4757', dark: '#4d0009', desc: 'Blood orange and ginger heat, sharp enough to wake you mid-scene. Slow burn, fast focus.' }
+];
+
+const PACKS = {
+  single: { label: 'Single can', cans: 1,  price: 2.99 },
+  p12:    { label: '12-pack',    cans: 12, price: 29.99 },
+  p24:    { label: '24-pack',    cans: 24, price: 54.99 }
+};
+
+/* ==================================================================
+   Utilities
+   ================================================================== */
+const $  = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.prototype.slice.call((r || document).querySelectorAll(s));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const lerp  = (a, b, t) => a + (b - a) * t;
+const money = n => CONFIG.currency + n.toFixed(2);
+const easeOutCubic   = t => 1 - Math.pow(1 - t, 3);
+const easeOutExpo    = t => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
+const easeInOutCubic = t => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const flavorById = id => FLAVORS.filter(f => f.id === id)[0];
+function hexToRgb(hex) {
+  const h = hex.replace('#', '');
+  const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const finePointer    = window.matchMedia('(pointer: fine)').matches;
+
+const state = { flavor: FLAVORS[0], subscribe: false, overclock: false };
+const heroPointer = { x: 0, y: 0 };      // -1..1, where the pointer sits over the hero
+const App = { can3d: null };
+
+const fontsReady = (document.fonts && document.fonts.load)
+  ? Promise.race([
+      Promise.all(['900 40px "Unbounded"', '700 40px "Unbounded"', '700 16px "Manrope"', '800 16px "Manrope"']
+        .map(s => document.fonts.load(s))).catch(() => {}),
+      new Promise(r => setTimeout(r, 2500))
+    ])
+  : Promise.resolve();
+
+function can2dHTML(f, cls) {
+  return '<div class="can2d ' + (cls || '') + '" style="--c:' + f.color + ';--cd:' + f.dark + '">' +
+    '<div class="can2d__top"></div>' +
+    '<div class="can2d__body"><span class="can2d__meta">ZERO SUGAR</span><span class="can2d__logo">LEVITY</span><span class="can2d__flavor">' + f.name + '</span></div>' +
+    '<div class="can2d__bottom"></div></div>';
+}
+
+function toast(msg, color) {
+  const wrap = $('#toasts'); if (!wrap) return;
+  const t = document.createElement('div'); t.className = 'toast';
+  const dot = document.createElement('i'); if (color) { dot.style.background = color; dot.style.boxShadow = '0 0 12px ' + color; }
+  const span = document.createElement('span'); span.textContent = msg;
+  t.appendChild(dot); t.appendChild(span); wrap.appendChild(t);
+  setTimeout(() => { t.classList.add('is-out'); setTimeout(() => t.remove(), 450); }, 3200);
+}
+
+/* ==================================================================
+   Loader: one orchestrated entrance, then the hero takes over
+   ================================================================== */
+function initLoader() {
+  const loader = $('#loader'); if (!loader) return;
+  const bar = $('.loader__bar i', loader);
+  const start = performance.now(), minTime = prefersReduced ? 200 : 1150;
+  let fontsDone = false; fontsReady.then(() => { fontsDone = true; });
+  function finish() {
+    bar.style.transform = 'scaleX(1)';
+    loader.classList.add('is-done');
+    document.body.classList.add('is-loaded');
+    setTimeout(() => loader.remove(), 900);
+  }
+  function tick(now) {
+    const t = clamp((now - start) / minTime, 0, 1);
+    bar.style.transform = 'scaleX(' + (0.92 * easeOutCubic(t)).toFixed(3) + ')';
+    if (t < 1 || !fontsDone) requestAnimationFrame(tick); else finish();
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ==================================================================
+   Custom cursor (fine pointers only)
+   ================================================================== */
+function initCursor() {
+  if (!finePointer || prefersReduced) return;
+  const dot = $('.cursor-dot'), ring = $('.cursor-ring'); if (!dot || !ring) return;
+  const HOVER = 'a, button, input, [data-cursor]';
+  const DEEP = '[data-tilt], .flavor-card, .loadout';
+  let x = innerWidth / 2, y = innerHeight / 2, rx = x, ry = y, shown = false, scale = 1, tScale = 1;
+  document.addEventListener('pointermove', e => {
+    x = e.clientX; y = e.clientY;
+    dot.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+    if (!shown) { shown = true; rx = x; ry = y; document.body.classList.add('has-cursor'); }
+    document.body.classList.remove('cursor-out');
+  }, { passive: true });
+  document.addEventListener('mouseleave', () => document.body.classList.add('cursor-out'));
+  document.addEventListener('pointerover', e => {
+    if (e.target.closest && e.target.closest(HOVER)) document.body.classList.add('cursor-hover');
+    if (e.target.closest && e.target.closest(DEEP)) tScale = 1.5;
+  });
+  document.addEventListener('pointerout', e => {
+    if (e.target.closest && e.target.closest(HOVER)) document.body.classList.remove('cursor-hover');
+    if (e.target.closest && e.target.closest(DEEP)) tScale = 1;
+  });
+  (function loop() {
+    rx = lerp(rx, x, .2); ry = lerp(ry, y, .2);
+    scale = lerp(scale, tScale, .18);
+    ring.style.transform = 'translate(' + rx.toFixed(1) + 'px,' + ry.toFixed(1) + 'px) scale(' + scale.toFixed(2) + ')';
+    requestAnimationFrame(loop);
+  })();
+}
+
+/* ==================================================================
+   Nav, scroll progress, mobile menu
+   ================================================================== */
+function initNav() {
+  const nav = $('#nav'), toggle = $('#navToggle'), progress = $('#progress');
+  let ticking = false;
+  function update() {
+    ticking = false;
+    const y = window.scrollY || window.pageYOffset || 0;
+    if (nav) nav.classList.toggle('is-scrolled', y > 40);
+    if (progress) {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      progress.style.transform = 'scaleX(' + (max > 0 ? clamp(y / max, 0, 1) : 0).toFixed(4) + ')';
+    }
+  }
+  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  update();
+  if (toggle) toggle.addEventListener('click', () => {
+    const open = document.body.classList.toggle('menu-open');
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+  $$('#mobileMenu a').forEach(a => a.addEventListener('click', () => {
+    document.body.classList.remove('menu-open');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  }));
+}
+
+/* ==================================================================
+   Scroll-spy: highlight the nav link for whichever section is centred
+   ================================================================== */
+function initScrollSpy() {
+  const links = $$('.nav__links a[href^="#"]'); if (!links.length) return;
+  const map = {};
+  links.forEach(a => { map[a.getAttribute('href').slice(1)] = a; });
+  const targets = Object.keys(map).map(id => document.getElementById(id)).filter(Boolean);
+  if (!targets.length) return;
+  if (!('IntersectionObserver' in window)) return;
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      const active = map[en.target.id]; if (!active) return;
+      links.forEach(l => l.classList.remove('is-active'));
+      active.classList.add('is-active');
+    });
+  }, { rootMargin: '-42% 0px -52% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t));
+}
+
+/* ==================================================================
+   Hero scroll-scrub: the hero sinks, fades and softens as you leave it
+   ================================================================== */
+function initHeroScrub() {
+  const hero = $('#top'); if (!hero || prefersReduced) return;
+  const copy = $('.hero__copy', hero), stage = $('#heroStage', hero), ghost = $('#heroGhost', hero);
+  let ticking = false;
+  function update() {
+    ticking = false;
+    const r = hero.getBoundingClientRect();
+    const p = clamp(-r.top / (r.height * .72), 0, 1);
+    if (copy) { copy.style.transform = 'translate3d(0,' + (p * -70).toFixed(1) + 'px,0)'; copy.style.opacity = clamp(1 - p * 1.25, 0, 1).toFixed(2); copy.style.filter = 'blur(' + (p * 5).toFixed(1) + 'px)'; }
+    if (stage) { stage.style.transform = 'translate3d(0,' + (p * 46).toFixed(1) + 'px,0) scale(' + (1 - p * .1).toFixed(3) + ')'; stage.style.opacity = clamp(1 - p * 1.15, 0, 1).toFixed(2); }
+    if (ghost) ghost.style.opacity = (0.05 * (1 - p * .8)).toFixed(3);
+  }
+  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  addEventListener('resize', update);
+  update();
+}
+
+/* ==================================================================
+   Scroll velocity: drives marquee speed, progress glow and grain
+   ================================================================== */
+function initScrollFX() {
+  const track = $('.marquee__track');
+  let lastY = window.scrollY || 0, lastT = performance.now(), boost = 0, ticking = false, idleTimer = null;
+  function measure() {
+    ticking = false;
+    const now = performance.now(), y = window.scrollY || 0;
+    const dt = Math.max(16, now - lastT), dy = Math.abs(y - lastY);
+    lastY = y; lastT = now;
+    const v = dy / dt;
+    boost = clamp(lerp(boost, clamp(v * 3.2, 0, 1), .35), 0, 1);
+    document.documentElement.style.setProperty('--scroll-boost', boost.toFixed(3));
+    if (track && !prefersReduced) track.style.animationDuration = (34 - boost * 22).toFixed(1) + 's';
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => document.documentElement.style.setProperty('--scroll-boost', '0'), 220);
+  }
+  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(measure); } }, { passive: true });
+}
+
+/* ==================================================================
+   Headline: split into characters for the 3D reveal
+   ================================================================== */
+function initSplitText() {
+  let i = 0;
+  $$('[data-split] .line').forEach(line => {
+    const text = line.textContent; line.textContent = ''; line.setAttribute('aria-hidden', 'true');
+    Array.prototype.forEach.call(text, ch => {
+      const s = document.createElement('span'); s.className = 'c';
+      s.style.setProperty('--i', i++); s.textContent = ch === ' ' ? '\u00A0' : ch;
+      line.appendChild(s);
+    });
+  });
+}
+
+/* ==================================================================
+   Background: a slow starfield with depth, pointer and scroll parallax
+   ================================================================== */
+function initParticles() {
+  const cvs = $('#bg'); if (!cvs) return;
+  const ctx = cvs.getContext('2d'); if (!ctx) return;
+  let w = 0, h = 0, pts = [], mx = 0, my = 0, tmx = 0, tmy = 0;
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = innerWidth; h = innerHeight;
+    cvs.width = Math.round(w * dpr); cvs.height = Math.round(h * dpr);
+    cvs.style.width = w + 'px'; cvs.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function seed() {
+    const n = clamp(Math.floor(w * h / 9000), 60, 170);
+    pts = []; for (let i = 0; i < n; i++) pts.push({
+      x: Math.random() * w, y: Math.random() * h, z: .25 + Math.random() * .75,
+      vx: (Math.random() - .5) * .06, vy: -(.02 + Math.random() * .07),
+      accent: Math.random() < .14, tw: Math.random() * Math.PI * 2, ts: .0012 + Math.random() * .002
+    });
+  }
+  resize(); seed();
+  addEventListener('resize', () => { resize(); seed(); });
+  if (finePointer) addEventListener('pointermove', e => { tmx = e.clientX / w - .5; tmy = e.clientY / h - .5; }, { passive: true });
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(48, now - last); last = now;
+    mx = lerp(mx, tmx, .04); my = lerp(my, tmy, .04);
+    const sy = (window.scrollY || 0), rgb = hexToRgb(state.flavor.color), span = h + 24;
+    ctx.clearRect(0, 0, w, h);
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      p.x += p.vx * dt * p.z; p.y += p.vy * dt * p.z; p.tw += p.ts * dt;
+      if (p.y < -12) { p.y = h + 12; p.x = Math.random() * w; }
+      if (p.x < -12) p.x = w + 12; else if (p.x > w + 12) p.x = -12;
+      const px = p.x - mx * 70 * p.z + my * 0;
+      const py = (((p.y - sy * .14 * p.z) % span) + span) % span - 12;
+      const a = (.22 + .55 * p.z) * (.62 + .38 * Math.sin(p.tw));
+      ctx.beginPath(); ctx.arc(px, py, p.z * (p.accent ? 2.3 : 1.4), 0, Math.PI * 2);
+      ctx.fillStyle = p.accent ? 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a.toFixed(3) + ')' : 'rgba(255,255,255,' + (a * .8).toFixed(3) + ')';
+      ctx.fill();
+    }
+    if (!prefersReduced) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ==================================================================
+   Hero stage: the CSS 3D context tilts toward the pointer
+   ================================================================== */
+function initHeroParallax() {
+  const hero = $('#top'), inner = $('#stageInner'), ghost = $('#heroGhost');
+  if (!hero || !inner || !finePointer || prefersReduced) return;
+  const orbA = $('.hero__orb-wrap--a', hero), orbB = $('.hero__orb-wrap--b', hero), floor = $('.hero__floor', hero);
+  let cx = 0, cy = 0;
+  hero.addEventListener('pointermove', e => {
+    const r = hero.getBoundingClientRect();
+    heroPointer.x = clamp(((e.clientX - r.left) / r.width - .5) * 2, -1, 1);
+    heroPointer.y = clamp(((e.clientY - r.top) / r.height - .5) * 2, -1, 1);
+  }, { passive: true });
+  hero.addEventListener('pointerleave', () => { heroPointer.x = 0; heroPointer.y = 0; });
+  (function loop() {
+    cx = lerp(cx, heroPointer.x, .05); cy = lerp(cy, heroPointer.y, .05);
+    inner.style.transform = 'rotateY(' + (cx * 7).toFixed(2) + 'deg) rotateX(' + (-cy * 5).toFixed(2) + 'deg)';
+    if (ghost) ghost.style.transform = 'translate(calc(-50% + ' + (cx * -34).toFixed(1) + 'px), calc(-50% + ' + (cy * -22).toFixed(1) + 'px))';
+    // Background layers drift opposite the stage, each at its own depth, for a layered parallax box
+    if (orbA) orbA.style.transform = 'translate3d(' + (cx * -26).toFixed(1) + 'px,' + (cy * -18).toFixed(1) + 'px,0)';
+    if (orbB) orbB.style.transform = 'translate3d(' + (cx * 34).toFixed(1) + 'px,' + (cy * 22).toFixed(1) + 'px,0)';
+    if (floor) floor.style.transform = 'translateX(calc(-50% + ' + (cx * 16).toFixed(1) + 'px)) perspective(700px) rotateX(66deg) rotateZ(' + (cx * .6).toFixed(2) + 'deg)';
+    requestAnimationFrame(loop);
+  })();
+}
+
+/* ==================================================================
+   Tilt cards, magnetic buttons, ripples
+   ================================================================== */
+function initTilt() {
+  if (!finePointer || prefersReduced) return;
+  $$('[data-tilt]').forEach(card => {
+    const max = parseFloat(card.dataset.tilt) || 10;
+    const base = (card.dataset.tiltBase || '0,0').split(',').map(Number);   // [rotateY, rotateX]
+    const glare = $('.glare', card);
+    const layers = $$('[data-plx]', card);   // inner elements that drift at their own depth
+    let raf = null, rx = 0, ry = 0, gx = 50, gy = 50, nx = 0, ny = 0;
+    function apply() {
+      raf = null;
+      card.style.transform = 'perspective(1100px) rotateX(' + (base[1] + rx).toFixed(2) + 'deg) rotateY(' + (base[0] + ry).toFixed(2) + 'deg)';
+      if (glare) glare.style.background = 'radial-gradient(circle at ' + gx.toFixed(1) + '% ' + gy.toFixed(1) + '%, rgba(255,255,255,.22), transparent 55%)';
+      layers.forEach(el => {
+        const f = parseFloat(el.dataset.plx) || 1;
+        el.style.transform = 'translate3d(' + (nx * f * 15).toFixed(1) + 'px,' + (ny * f * 11).toFixed(1) + 'px,' + (f * 34).toFixed(1) + 'px)';
+      });
+    }
+    card.addEventListener('pointerenter', () => card.classList.add('is-tilting'));
+    card.addEventListener('pointermove', e => {
+      const r = card.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+      rx = (.5 - py) * max * 2; ry = (px - .5) * max * 2; gx = px * 100; gy = py * 100;
+      nx = (px - .5) * 2; ny = (py - .5) * 2;
+      if (!raf) raf = requestAnimationFrame(apply);
+    });
+    card.addEventListener('pointerleave', () => {
+      card.classList.remove('is-tilting');
+      if (raf) { cancelAnimationFrame(raf); raf = null; }
+      card.style.transform = ''; if (glare) glare.style.background = '';
+      layers.forEach(el => { el.style.transform = ''; });
+    });
+  });
+}
+
+function initMagnetic() {
+  if (!finePointer || prefersReduced) return;
+  $$('[data-magnetic]').forEach(wrap => {
+    const btn = $('.btn', wrap); if (!btn) return;
+    const strength = parseFloat(wrap.dataset.magnetic) || .32;
+    const label = $('.btn__label', btn);
+    wrap.addEventListener('pointerenter', () => wrap.classList.add('is-active'));
+    wrap.addEventListener('pointermove', e => {
+      const r = wrap.getBoundingClientRect();
+      const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+      btn.style.transform = 'translate(' + (dx * strength).toFixed(1) + 'px,' + (dy * strength).toFixed(1) + 'px)';
+      if (label) label.style.transform = 'translate(' + (dx * strength * .35).toFixed(1) + 'px,' + (dy * strength * .35).toFixed(1) + 'px)';
+    });
+    wrap.addEventListener('pointerleave', () => {
+      wrap.classList.remove('is-active'); btn.style.transform = ''; if (label) label.style.transform = '';
+    });
+  });
+}
+
+function initRipple() {
+  document.addEventListener('click', e => {
+    const btn = e.target.closest ? e.target.closest('.btn') : null;
+    if (!btn || prefersReduced) return;
+    const r = btn.getBoundingClientRect(), d = Math.max(r.width, r.height);
+    const cx = e.detail ? e.clientX : r.left + r.width / 2, cy = e.detail ? e.clientY : r.top + r.height / 2;
+    const s = document.createElement('span'); s.className = 'ripple';
+    s.style.cssText = 'width:' + d + 'px;height:' + d + 'px;left:' + (cx - r.left - d / 2) + 'px;top:' + (cy - r.top - d / 2) + 'px';
+    btn.appendChild(s); setTimeout(() => s.remove(), 700);
+  });
+}
+
+/* ==================================================================
+   Scroll: reveals, depth parallax, counters
+   ================================================================== */
+function initReveal() {
+  const els = $$('[data-reveal]');
+  if (!('IntersectionObserver' in window)) { els.forEach(el => el.classList.add('is-in')); return; }
+  const io = new IntersectionObserver(entries => entries.forEach(en => {
+    if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); }
+  }), { threshold: .12, rootMargin: '0px 0px -6% 0px' });
+  els.forEach(el => io.observe(el));
+}
+
+function initParallax() {
+  const els = $$('[data-depth]'); if (!els.length || prefersReduced) return;
+  let ticking = false;
+  function update() {
+    ticking = false;
+    const vh = innerHeight;
+    els.forEach(el => {
+      const scope = el.parentElement, r = scope.getBoundingClientRect();
+      if (r.bottom < -300 || r.top > vh + 300) return;
+      const p = (r.top + r.height / 2 - vh / 2) / vh;
+      el.style.setProperty('--py', (p * (parseFloat(el.dataset.depth) || .2) * 180).toFixed(1) + 'px');
+    });
+  }
+  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  addEventListener('resize', update);
+  update();
+}
+
+function initCounters() {
+  const els = $$('[data-count]'); if (!els.length) return;
+  function run(el) {
+    const target = parseFloat(el.dataset.count), dec = parseInt(el.dataset.decimals || '0', 10), dur = 1700, t0 = performance.now();
+    if (prefersReduced) { el.textContent = target.toFixed(dec); return; }
+    (function step(now) {
+      const p = clamp((now - t0) / dur, 0, 1);
+      el.textContent = (target * easeOutExpo(p)).toFixed(dec);
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+  if (!('IntersectionObserver' in window)) { els.forEach(el => { el.textContent = el.dataset.count; }); return; }
+  const io = new IntersectionObserver(entries => entries.forEach(en => {
+    if (en.isIntersecting) { run(en.target); io.unobserve(en.target); }
+  }), { threshold: .6 });
+  els.forEach(el => io.observe(el));
+}
+
+/* ==================================================================
+   Lift-curve scrubber: hover or drag the chart to read the timeline
+   ================================================================== */
+function initCurveScrubber() {
+  const svg = $('#curveSvg'), path = $('#curveMain'), scrub = $('#curveScrub');
+  if (!svg || !path || !scrub || !path.getTotalLength) return;
+  const hit = $('.curve__hit', svg), line = $('line', scrub), dot = $('circle', scrub), tip = $('.curve__tip', scrub);
+  const timeText = $('.curve__tip-time', scrub), lvlText = $('.curve__tip-lvl', scrub);
+  const len = path.getTotalLength(), baseY = 200, peakY = 58;
+  function pointAtX(targetX) {
+    let lo = 0, hi = len, p = path.getPointAtLength(0);
+    for (let i = 0; i < 20; i++) { const mid = (lo + hi) / 2; p = path.getPointAtLength(mid); if (p.x < targetX) lo = mid; else hi = mid; }
+    return p;
+  }
+  function update(clientX) {
+    const r = svg.getBoundingClientRect();
+    const svgX = clamp((clientX - r.left) / Math.max(r.width, 1), 0, 1) * 800;
+    const p = pointAtX(svgX);
+    const minutes = Math.round((p.x / 800) * 360);
+    const lift = clamp(Math.round((baseY - p.y) / (baseY - peakY) * 100), 0, 100);
+    line.setAttribute('x1', p.x.toFixed(1)); line.setAttribute('x2', p.x.toFixed(1));
+    dot.setAttribute('cx', p.x.toFixed(1)); dot.setAttribute('cy', p.y.toFixed(1));
+    tip.setAttribute('transform', 'translate(' + clamp(p.x, 60, 740).toFixed(1) + ',' + p.y.toFixed(1) + ')');
+    timeText.textContent = minutes < 60 ? minutes + ' min' : (minutes / 60).toFixed(1) + ' h';
+    lvlText.textContent = 'Lift ' + lift + '%';
+  }
+  if (!hit) return;
+  hit.addEventListener('pointerenter', e => { scrub.classList.add('is-active'); update(e.clientX); });
+  hit.addEventListener('pointermove', e => update(e.clientX));
+  hit.addEventListener('pointerleave', () => scrub.classList.remove('is-active'));
+  hit.addEventListener('pointerdown', e => update(e.clientX));
+}
+
+/* ==================================================================
+   Flavor system: the whole site retints to the selected can
+   ================================================================== */
+function applyFlavorTheme(f) {
+  const root = document.documentElement.style, rgb = hexToRgb(f.color);
+  root.setProperty('--accent', f.color);
+  root.setProperty('--accent-rgb', rgb.join(','));
+  root.setProperty('--accent-dark', f.dark);
+}
+
+function setFlavor(id, force) {
+  const f = flavorById(id); if (!f || (f === state.flavor && !force)) return;
+  state.flavor = f;
+  applyFlavorTheme(f);
+  $$('.pill[data-flavor]').forEach(p => p.classList.toggle('is-active', p.dataset.flavor === id));
+  const nameEl = $('#heroFlavorName');
+  if (nameEl) { nameEl.classList.remove('is-swap'); void nameEl.offsetWidth; nameEl.textContent = f.name; nameEl.classList.add('is-swap'); }
+  const fb = $('.hero__fallback .can2d');
+  if (fb) { fb.style.setProperty('--c', f.color); fb.style.setProperty('--cd', f.dark); const fl = $('.can2d__flavor', fb); if (fl) fl.textContent = f.name; }
+  const emptyCan = $('#cartEmpty .can2d');
+  if (emptyCan) { emptyCan.style.setProperty('--c', f.color); emptyCan.style.setProperty('--cd', f.dark); }
+  if (App.can3d) App.can3d.setFlavor(f);
+}
+
+function initFlavorPills() {
+  const wrap = $('#heroFlavors'); if (!wrap) return;
+  wrap.innerHTML = FLAVORS.map(f =>
+    '<button class="pill' + (f === state.flavor ? ' is-active' : '') + '" data-flavor="' + f.id + '" style="--pc:' + f.color + '" type="button"><i></i>' + f.name + '</button>'
+  ).join('');
+  wrap.addEventListener('click', e => { const b = e.target.closest('.pill'); if (b) setFlavor(b.dataset.flavor); });
+  applyFlavorTheme(state.flavor);
+}
+
+function initFlavorCards() {
+  const grid = $('#flavorGrid'); if (!grid) return;
+  grid.innerHTML = FLAVORS.map((f, i) => {
+    const rgb = hexToRgb(f.color);
+    return '<div data-reveal style="--d:' + (i * .08) + 's">' +
+      '<article class="card flavor-card" data-tilt="9" data-flavor="' + f.id + '" data-pack="p12" style="--c:' + f.color + ';--cd:' + f.dark + ';--c-rgb:' + rgb.join(',') + '">' +
+        '<div class="card__surface"><div class="flavor-card__glow"></div><div class="glare"></div></div>' +
+        '<div class="flavor-card__can" data-plx="1.6" style="--delay:' + (-i * 1.3) + 's">' + can2dHTML(f, 'can2d--float') + '</div>' +
+        '<div class="flavor-card__body" data-plx=".3">' +
+          '<span class="flavor-card__notes">' + f.notes + '</span>' +
+          '<h3 class="flavor-card__title">' + f.name + '</h3>' +
+          '<p class="flavor-card__desc">' + f.desc + '</p>' +
+          '<div class="pack-select" role="group" aria-label="Pack size for ' + f.name + '">' +
+            Object.keys(PACKS).map(k => '<button type="button" class="pack-btn' + (k === 'p12' ? ' is-active' : '') + '" data-pack-btn="' + k + '" aria-pressed="' + (k === 'p12') + '">' + PACKS[k].cans + '<small>' + (PACKS[k].cans === 1 ? 'can' : 'cans') + '</small></button>').join('') +
+          '</div>' +
+          '<div class="flavor-card__buy">' +
+            '<div class="price"><span class="price__val" data-price>' + money(PACKS.p12.price) + '</span><span class="price__per">' + money(PACKS.p12.price / 12) + ' per can</span></div>' +
+            '<button type="button" class="btn btn--primary btn--sm btn--add" data-add aria-label="Add ' + f.name + ' to cart">' +
+              '<span class="btn__label"><svg class="icon"><use href="#i-plus"/></svg>Add to cart</span>' +
+              '<span class="btn__state btn__state--loading"><i></i></span>' +
+              '<span class="btn__state btn__state--done"><svg class="icon"><use href="#i-check"/></svg>Added</span>' +
+            '</button>' +
+          '</div>' +
+        '</div>' +
+      '</article></div>';
+  }).join('');
+
+  grid.addEventListener('click', e => {
+    const packBtn = e.target.closest('[data-pack-btn]');
+    if (packBtn) {
+      const card = packBtn.closest('.flavor-card'), key = packBtn.dataset.packBtn, p = PACKS[key];
+      card.dataset.pack = key;
+      $$('.pack-btn', card).forEach(b => { const on = b === packBtn; b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', String(on)); });
+      $('[data-price]', card).textContent = money(p.price);
+      $('.price__per', card).textContent = money(p.price / p.cans) + ' per can';
+      return;
+    }
+    const add = e.target.closest('[data-add]');
+    if (add) {
+      const card = add.closest('.flavor-card'), f = flavorById(card.dataset.flavor), key = card.dataset.pack, pack = PACKS[key];
+      purchaseEffect(add, $('.flavor-card__can', card), f, () => Cart.add({ id: f.id + '-' + key, name: f.name, variant: pack.label, price: pack.price, color: f.color, dark: f.dark }));
+    }
+  });
+}
+
+/* ==================================================================
+   Purchase effect: button state, can pop, fly-to-cart, cart bump
+   ================================================================== */
+function purchaseEffect(btn, fromEl, flavor, commit) {
+  if (btn.classList.contains('is-busy')) return;
+  btn.classList.add('is-busy', 'is-loading');
+  setTimeout(() => {
+    btn.classList.remove('is-loading'); btn.classList.add('is-done');
+    const can = fromEl ? $('.can2d', fromEl) : null;
+    if (can) { can.classList.remove('is-pop'); void can.offsetWidth; can.classList.add('is-pop'); }
+    else if (App.can3d && fromEl && fromEl.id === 'heroStage') App.can3d.pop();
+    flyToCart(fromEl, flavor);
+    commit();
+    setTimeout(() => btn.classList.remove('is-done', 'is-busy'), 1400);
+  }, 420);
+}
+
+function flyToCart(fromEl, flavor) {
+  const cartBtn = $('#cartBtn');
+  if (!cartBtn || !fromEl || prefersReduced) return;
+  const s = fromEl.getBoundingClientRect(), c = cartBtn.getBoundingClientRect();
+  const tmp = document.createElement('div'); tmp.innerHTML = can2dHTML(flavor, 'can2d--fly');
+  const clone = tmp.firstElementChild;
+  if (!clone.animate) return;
+  const w = 60, h = 138;
+  clone.style.cssText += ';--cw:60px;position:fixed;left:0;top:0;margin:' + (-h / 2) + 'px 0 0 ' + (-w / 2) + 'px;z-index:9000;pointer-events:none;will-change:transform';
+  document.body.appendChild(clone);
+  const sx = s.left + s.width / 2, sy = s.top + s.height / 2, ex = c.left + c.width / 2, ey = c.top + c.height / 2;
+  const mx = (sx + ex) / 2, my = Math.min(sy, ey) - 140;
+  const anim = clone.animate([
+    { transform: 'translate(' + sx + 'px,' + sy + 'px) scale(1) rotate(0deg)', opacity: 1 },
+    { transform: 'translate(' + mx + 'px,' + my + 'px) scale(.6) rotate(-24deg)', opacity: 1, offset: .55 },
+    { transform: 'translate(' + ex + 'px,' + ey + 'px) scale(.1) rotate(18deg)', opacity: .35 }
+  ], { duration: 950, easing: 'cubic-bezier(.3,.7,.3,1)', fill: 'forwards' });
+  anim.onfinish = () => {
+    clone.remove();
+    cartBtn.classList.remove('is-bump'); void cartBtn.offsetWidth; cartBtn.classList.add('is-bump');
+  };
+}
+
+/* ==================================================================
+   Cart
+   ================================================================== */
+const Cart = {
+  items: [],
+  add(item) {
+    const ex = this.items.filter(i => i.id === item.id)[0];
+    if (ex) ex.qty += 1; else this.items.push(Object.assign({ qty: 1 }, item));
+    this.render();
+    toast('Added ' + item.name + ', ' + item.variant, item.color);
+  },
+  update(id, d) {
+    const it = this.items.filter(i => i.id === id)[0]; if (!it) return;
+    it.qty += d; if (it.qty <= 0) this.items = this.items.filter(i => i !== it);
+    this.render();
+  },
+  remove(id) { this.items = this.items.filter(i => i.id !== id); this.render(); },
+  count()    { return this.items.reduce((a, i) => a + i.qty, 0); },
+  subtotal() { return this.items.reduce((a, i) => a + i.qty * i.price, 0); },
+  shipping() { const s = this.subtotal(); return (s === 0 || s >= CONFIG.freeShippingOver) ? 0 : CONFIG.shippingFlat; },
+  render() {
+    const n = this.count(), sub = this.subtotal(), ship = this.shipping();
+    const drawer = $('#cart'), list = $('#cartItems'), cartBtn = $('#cartBtn');
+    drawer.classList.toggle('is-empty', n === 0);
+    $('#cartCount').textContent = n;
+    $('#cartHeadCount').textContent = n + (n === 1 ? ' item' : ' items');
+    cartBtn.classList.toggle('has-items', n > 0);
+    list.innerHTML = this.items.map(i =>
+      '<div class="cart-item" data-id="' + i.id + '">' +
+        '<div class="cart-item__thumb">' + can2dHTML({ color: i.color, dark: i.dark, name: i.name }, 'can2d--mini') + '</div>' +
+        '<div class="cart-item__info"><strong>' + i.name + '</strong><span>' + i.variant + '</span><b>' + money(i.price * i.qty) + '</b></div>' +
+        '<div class="cart-item__ctl"><div class="qty"><button type="button" data-qty="-1" aria-label="Remove one">&minus;</button><span>' + i.qty + '</span><button type="button" data-qty="1" aria-label="Add one">+</button></div>' +
+        '<button type="button" class="cart-item__rm" data-remove>Remove</button></div>' +
+      '</div>').join('');
+    $('#sumSub').textContent = money(sub);
+    $('#sumShip').textContent = sub === 0 ? '\u2014' : (ship === 0 ? 'Free' : money(ship));
+    $('#sumTotal').textContent = money(sub + ship);
+    const remain = Math.max(0, CONFIG.freeShippingOver - sub);
+    $('#shipMsg').innerHTML = remain > 0 ? 'Add <b>' + money(remain) + '</b> more for free shipping' : '<b>Free shipping unlocked.</b> Nice.';
+    $('#shipBar').style.transform = 'scaleX(' + clamp(sub / CONFIG.freeShippingOver, 0, 1).toFixed(3) + ')';
+  },
+  open() {
+    $('#cart').classList.add('is-open'); $('#cartOverlay').classList.add('is-open');
+    $('#cart').setAttribute('aria-hidden', 'false');
+  },
+  close() {
+    $('#cart').classList.remove('is-open'); $('#cartOverlay').classList.remove('is-open');
+    $('#cart').setAttribute('aria-hidden', 'true');
+  }
+};
+
+function checkout() {
+  const btn = $('#checkoutBtn');
+  if (!Cart.items.length || btn.classList.contains('is-loading')) return;
+  btn.classList.add('is-loading'); btn.disabled = true;
+  const total = Cart.subtotal() + Cart.shipping();
+  setTimeout(() => {
+    btn.classList.remove('is-loading'); btn.disabled = false;
+    $('#orderId').textContent = 'LV-' + Math.floor(100000 + Math.random() * 900000);
+    $('#orderTotal').textContent = money(total);
+    $('#cartSuccess').classList.add('is-visible');
+    confetti($('#confetti'));
+    Cart.items = []; Cart.render();
+  }, 1500);
+}
+
+function confetti(cvs) {
+  if (!cvs || prefersReduced) return;
+  const ctx = cvs.getContext('2d'), r = cvs.parentElement.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cvs.width = Math.round(r.width * dpr); cvs.height = Math.round(r.height * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const colors = [state.flavor.color, '#ffffff', '#9d7bff', '#ff9a3c', '#4df0e0', '#d4ff4a'];
+  const ps = []; for (let i = 0; i < 150; i++) ps.push({
+    x: r.width / 2, y: r.height * .42, vx: (Math.random() - .5) * 15, vy: -Math.random() * 15 - 3,
+    w: 5 + Math.random() * 6, h: 4 + Math.random() * 4, rot: Math.random() * Math.PI, vr: (Math.random() - .5) * .35,
+    c: colors[Math.floor(Math.random() * colors.length)]
+  });
+  const t0 = performance.now();
+  (function frame(now) {
+    const el = (now - t0) / 1000, life = clamp(1 - (el - 1.4) / 1.2, 0, 1);
+    ctx.clearRect(0, 0, r.width, r.height);
+    ps.forEach(p => {
+      p.vy += .38; p.x += p.vx; p.y += p.vy; p.vx *= .985; p.rot += p.vr;
+      ctx.save(); ctx.globalAlpha = life; ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
+    });
+    if (el < 2.8) requestAnimationFrame(frame); else ctx.clearRect(0, 0, r.width, r.height);
+  })(t0);
+}
+
+function initCart() {
+  $('#cartBtn').addEventListener('click', () => Cart.open());
+  $('#cartClose').addEventListener('click', () => Cart.close());
+  $('#cartOverlay').addEventListener('click', () => Cart.close());
+  $$('[data-close-cart]').forEach(el => el.addEventListener('click', () => Cart.close()));
+  addEventListener('keydown', e => { if (e.key === 'Escape') { Cart.close(); document.body.classList.remove('menu-open'); } });
+  $('#cartItems').addEventListener('click', e => {
+    const item = e.target.closest('.cart-item'); if (!item) return;
+    const q = e.target.closest('[data-qty]');
+    if (q) { Cart.update(item.dataset.id, parseInt(q.dataset.qty, 10)); return; }
+    if (e.target.closest('[data-remove]')) { item.classList.add('is-removing'); setTimeout(() => Cart.remove(item.dataset.id), 280); }
+  });
+  $('#checkoutBtn').addEventListener('click', checkout);
+  $('#continueBtn').addEventListener('click', () => { $('#cartSuccess').classList.remove('is-visible'); Cart.close(); });
+  Cart.render();
+}
+
+/* ==================================================================
+   Loadouts, hero buy, newsletter
+   ================================================================== */
+function initLoadouts() {
+  const toggle = $('#subToggle'), cards = $$('.loadout');
+  function priceFor(card) { const base = parseFloat(card.dataset.price); return state.subscribe ? +(base * (1 - CONFIG.subscriptionDiscount)).toFixed(2) : base; }
+  function render() {
+    cards.forEach(card => {
+      const base = parseFloat(card.dataset.price), cans = parseInt(card.dataset.cans, 10), price = priceFor(card);
+      $('.loadout__price', card).textContent = money(price);
+      $('.loadout__per', card).textContent = money(price / cans) + ' per can';
+      const was = $('.loadout__was', card); if (was) { was.textContent = money(base); was.hidden = !state.subscribe; }
+    });
+  }
+  if (toggle) toggle.addEventListener('click', () => {
+    state.subscribe = !state.subscribe;
+    toggle.setAttribute('aria-checked', String(state.subscribe));
+    toggle.classList.toggle('is-on', state.subscribe);
+    render();
+  });
+  cards.forEach(card => {
+    const btn = $('[data-add-loadout]', card); if (!btn) return;
+    btn.addEventListener('click', () => {
+      const f = state.flavor, price = priceFor(card);
+      purchaseEffect(btn, $('.loadout__cans', card), f, () => Cart.add({
+        id: 'loadout-' + card.dataset.loadout + (state.subscribe ? '-monthly' : ''),
+        name: card.dataset.name + ' loadout', variant: card.dataset.cans + ' cans, ' + (state.subscribe ? 'monthly' : 'one-time'),
+        price: price, color: f.color, dark: f.dark
+      }));
+    });
+  });
+  render();
+}
+
+function initHeroBuy() {
+  const btn = $('#heroAdd'); if (!btn) return;
+  btn.addEventListener('click', () => {
+    const f = state.flavor;
+    purchaseEffect(btn, $('#heroStage'), f, () => Cart.add({ id: f.id + '-p12', name: f.name, variant: PACKS.p12.label, price: PACKS.p12.price, color: f.color, dark: f.dark }));
+  });
+}
+
+function initNewsletter() {
+  const form = $('#newsletter'), band = $('#band'); if (!form || !band) return;
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const input = $('input', form), v = input.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { band.classList.add('is-error'); input.focus(); setTimeout(() => band.classList.remove('is-error'), 600); return; }
+    band.classList.add('is-sent');
+    toast('You\u2019re on the Zero-G list');
+  });
+}
+
+/* ==================================================================
+   Easter egg: Konami code toggles overclock mode
+   ================================================================== */
+function initEasterEgg() {
+  const code = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+  let pos = 0, timer = null;
+  addEventListener('keydown', e => {
+    const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (k === code[pos]) { pos++; if (pos === code.length) { pos = 0; toggle(); } }
+    else pos = (k === code[0]) ? 1 : 0;
+  });
+  function toggle() {
+    state.overclock = !state.overclock;
+    document.body.classList.toggle('is-overclock', state.overclock);
+    clearInterval(timer);
+    if (state.overclock) {
+      let i = FLAVORS.indexOf(state.flavor);
+      timer = setInterval(() => { i = (i + 1) % FLAVORS.length; setFlavor(FLAVORS[i].id); }, 1500);
+      toast('Overclock engaged. Can RPM +300%');
+    } else toast('Overclock disengaged, back to nominal');
+  }
+}
+
+/* ==================================================================
+   3D can (three.js): lathe-built can, procedurally painted label,
+   generated studio environment, pointer and drag interaction.
+   ================================================================== */
+function roundRect(g, x, y, w, h, r) {
+  g.beginPath(); g.moveTo(x + r, y);
+  g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+}
+function wrapText(g, text, x, y, maxW, lh) {
+  let line = '';
+  text.split(' ').forEach(word => {
+    const test = line ? line + ' ' + word : word;
+    if (g.measureText(test).width > maxW && line) { g.fillText(line, x, y); line = word; y += lh; } else line = test;
+  });
+  if (line) g.fillText(line, x, y);
+}
+function fitFont(g, text, weight, family, maxW, startPx) {
+  g.font = weight + ' ' + startPx + 'px ' + family;
+  const w = g.measureText(text).width;
+  const px = w > maxW ? Math.floor(startPx * maxW / w) : startPx;
+  g.font = weight + ' ' + px + 'px ' + family;
+  return px;
+}
+function drawNutrition(g, x, y, w, h, body, display) {
+  g.save();
+  g.fillStyle = 'rgba(0,0,0,.38)'; roundRect(g, x, y, w, h, 14); g.fill();
+  g.strokeStyle = 'rgba(255,255,255,.7)'; g.lineWidth = 3; roundRect(g, x, y, w, h, 14); g.stroke();
+  g.textAlign = 'left'; g.textBaseline = 'alphabetic'; g.fillStyle = '#fff';
+  fitFont(g, 'NUTRITION', '900', display, w - 48, 40); g.fillText('NUTRITION', x + 24, y + 62);
+  g.font = '700 19px ' + body; g.fillStyle = 'rgba(255,255,255,.75)'; g.fillText('PER CAN, 250 ML', x + 24, y + 92);
+  g.fillStyle = '#fff'; g.fillRect(x + 24, y + 108, w - 48, 4);
+  const rows = [['Energy', '10 kcal'], ['Carbohydrate', '2 g'], ['of which sugars', '0 g'], ['Sodium', '120 mg'], ['Potassium', '100 mg'], ['Magnesium', '40 mg'], ['Caffeine', '200 mg'], ['Taurine', '1000 mg'], ['L-theanine', '100 mg'], ['Niacin (B3)', '16 mg'], ['Vitamin B6', '1.4 mg'], ['Vitamin B12', '2.5 \u00B5g']];
+  g.font = '600 20px ' + body;
+  rows.forEach((r, i) => {
+    const ry = y + 148 + i * 34;
+    g.fillStyle = 'rgba(255,255,255,.88)'; g.textAlign = 'left'; g.fillText(r[0], x + 24, ry);
+    g.textAlign = 'right'; g.fillText(r[1], x + w - 24, ry);
+    g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(x + 24, ry + 10, w - 48, 1);
+  });
+  g.restore();
+}
+function drawBarcode(g, x, y, w, h, body) {
+  g.save(); g.fillStyle = '#fff';
+  let bx = x, seed = 11;
+  const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+  while (bx < x + w) { const bw = 3 + Math.floor(rnd() * 3) * 3, gap = 3 + Math.floor(rnd() * 3) * 2; g.fillRect(bx, y, Math.min(bw, x + w - bx), h); bx += bw + gap; }
+  g.font = '600 21px ' + body; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText('8 906012 345678', x + w / 2, y + h + 12);
+  g.restore();
+}
+
+function drawLabel(f) {
+  const W = 2048, H = 880;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  const rgb = hexToRgb(f.color), col = a => 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a + ')';
+  const display = '"Unbounded", "Arial Black", Impact, sans-serif', body = '"Manrope", "Segoe UI", Arial, sans-serif';
+  const ls = v => { if ('letterSpacing' in g) g.letterSpacing = v; };
+
+  const base = g.createLinearGradient(0, 0, 0, H);
+  base.addColorStop(0, '#1b1a26'); base.addColorStop(.5, '#0f0e17'); base.addColorStop(1, '#08070d');
+  g.fillStyle = base; g.fillRect(0, 0, W, H);
+
+  const bloom = g.createRadialGradient(W * .6, H * .76, 30, W * .6, H * .76, 840);
+  bloom.addColorStop(0, col(.95)); bloom.addColorStop(.42, col(.45)); bloom.addColorStop(1, col(0));
+  g.fillStyle = bloom; g.fillRect(0, 0, W, H);
+
+  g.save(); g.globalCompositeOperation = 'lighter';
+  for (let i = -3; i < 17; i++) {
+    const x = (i / 14) * W, wdt = 26 + (Math.abs(i) % 2 ? 28 : 0);
+    const grad = g.createLinearGradient(x, H, x + 440, 0);
+    grad.addColorStop(0, col(0)); grad.addColorStop(.5, col(.1 + (Math.abs(i) % 3) * .05)); grad.addColorStop(1, col(0));
+    g.fillStyle = grad; g.beginPath(); g.moveTo(x, H); g.lineTo(x + 440, 0); g.lineTo(x + 440 + wdt, 0); g.lineTo(x + wdt, H); g.closePath(); g.fill();
+  }
+  g.restore();
+
+  g.fillStyle = col(1); g.fillRect(0, 44, W, 5); g.fillRect(0, H - 49, W, 5);
+  g.fillStyle = 'rgba(255,255,255,.62)'; g.font = '700 21px ' + body; g.textBaseline = 'middle'; g.textAlign = 'left'; ls('3px');
+  const claims = 'ZERO SUGAR      200 MG CAFFEINE      SIX-HOUR LIFT      NO CRASH      250 ML      ';
+  const cw = Math.max(200, g.measureText(claims).width);
+  for (let x = 0; x < W; x += cw) { g.fillText(claims, x, 82); g.fillText(claims, x, H - 86); }
+
+  g.textAlign = 'center';
+  ls('4px'); fitFont(g, 'LEVITY', '900', display, 720, 260);
+  g.shadowColor = col(.6); g.shadowBlur = 48; g.fillStyle = '#ffffff'; g.fillText('LEVITY', W / 2, H * .40);
+  g.shadowBlur = 0; g.shadowColor = 'transparent';
+  ls('2px'); fitFont(g, f.name.toUpperCase(), '700', display, 640, 72);
+  g.fillStyle = f.color; g.fillText(f.name.toUpperCase(), W / 2, H * .565);
+  ls('5px'); g.font = '800 26px ' + body; g.fillStyle = 'rgba(255,255,255,.9)'; g.fillText('ZERO-SUGAR ENERGY DRINK', W / 2, H * .655);
+
+  const badges = ['200 MG CAFFEINE', 'ZERO SUGAR', '250 ML'];
+  ls('2px'); g.font = '800 22px ' + body;
+  const pad = 40, gap = 20, bws = badges.map(t => g.measureText(t).width + pad);
+  let bx = W / 2 - (bws.reduce((a, b) => a + b, 0) + gap * (badges.length - 1)) / 2; const by = H * .76;
+  badges.forEach((t, i) => {
+    g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 2; roundRect(g, bx, by - 24, bws[i], 48, 24); g.stroke();
+    g.fillStyle = '#fff'; g.fillText(t, bx + bws[i] / 2, by + 1); bx += bws[i] + gap;
+  });
+  ls('0px');
+
+  drawNutrition(g, W * .805, H * .155, W * .165, H * .67, body, display);
+  drawBarcode(g, W * .045, H * .55, W * .13, H * .16, body);
+  g.font = '600 20px ' + body; g.textAlign = 'left'; g.textBaseline = 'alphabetic'; g.fillStyle = 'rgba(255,255,255,.72)';
+  wrapText(g, 'Contains 80 mg caffeine per 100 ml. Not recommended for children, pregnant or breastfeeding women, or people sensitive to caffeine. Please recycle.', W * .045, H * .2, W * .13, 26);
+  g.font = '800 20px ' + body; g.fillText('LOT LV-2609-A', W * .045, H * .455); g.fillText('BEST BEFORE 09 / 2027', W * .045, H * .49);
+  return c;
+}
+
+function makeEnvMap(THREE) {
+  const size = 256;
+  const mk = fn => { const c = document.createElement('canvas'); c.width = c.height = size; fn(c.getContext('2d')); return c; };
+  const side = bands => mk(g => {
+    const grad = g.createLinearGradient(0, 0, 0, size);
+    grad.addColorStop(0, '#6a6f86'); grad.addColorStop(.45, '#232635'); grad.addColorStop(1, '#06070b');
+    g.fillStyle = grad; g.fillRect(0, 0, size, size);
+    bands.forEach(b => {
+      const bg = g.createLinearGradient(b[0] - b[1], 0, b[0] + b[1], 0);
+      bg.addColorStop(0, 'rgba(255,255,255,0)'); bg.addColorStop(.5, 'rgba(255,255,255,' + b[2] + ')'); bg.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = bg; g.fillRect(b[0] - b[1], 0, b[1] * 2, size);
+    });
+  });
+  const px = side([[68, 26, .95], [196, 10, .4]]);
+  const nx = side([[150, 42, .8]]);
+  const pz = side([[128, 62, .55]]);
+  const nz = side([[56, 18, .6], [204, 14, .5]]);
+  const py = mk(g => { const grad = g.createRadialGradient(128, 128, 10, 128, 128, 185); grad.addColorStop(0, '#ffffff'); grad.addColorStop(.35, '#cfd3e0'); grad.addColorStop(1, '#3c3f4c'); g.fillStyle = grad; g.fillRect(0, 0, size, size); });
+  const ny = mk(g => { g.fillStyle = '#07080c'; g.fillRect(0, 0, size, size); const grad = g.createRadialGradient(128, 128, 10, 128, 128, 150); grad.addColorStop(0, 'rgba(84,88,110,.55)'); grad.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = grad; g.fillRect(0, 0, size, size); });
+  const tex = new THREE.CubeTexture([px, nx, py, ny, pz, nz]);
+  tex.encoding = THREE.sRGBEncoding; tex.needsUpdate = true;
+  return tex;
+}
+
+function initCan3D() {
+  const canvas = $('#can3d'), hero = $('#top'); if (!canvas || !hero) return;
+  const THREE = window.THREE;
+  if (!THREE) { hero.classList.add('no-webgl'); return; }
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, powerPreference: 'high-performance' }); }
+  catch (err) { hero.classList.add('no-webgl'); return; }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setClearColor(0x000000, 0);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
+
+  const scene = new THREE.Scene();
+  scene.environment = makeEnvMap(THREE);
+  const camera = new THREE.PerspectiveCamera(30, 1, .1, 100);
+
+  const texCache = {};
+  function makeLabelTexture(f) {
+    const tex = new THREE.CanvasTexture(drawLabel(f));
+    tex.encoding = THREE.sRGBEncoding; tex.wrapS = THREE.RepeatWrapping; tex.offset.x = .5;
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    return tex;
+  }
+  function texFor(f) { if (!texCache[f.id]) texCache[f.id] = makeLabelTexture(f); return texCache[f.id]; }
+
+  const alu = new THREE.MeshStandardMaterial({ color: 0xd3d7df, metalness: 1, roughness: .3, envMapIntensity: 1, side: THREE.DoubleSide });
+  const label = new THREE.MeshPhysicalMaterial({ map: texFor(state.flavor), metalness: .5, roughness: .42, clearcoat: .7, clearcoatRoughness: .25, envMapIntensity: 1.1, side: THREE.DoubleSide });
+
+  const v2 = (x, y) => new THREE.Vector2(x, y);
+  const bodyGeo   = new THREE.LatheGeometry([v2(1, .36), v2(1, 1.1), v2(1, 1.9), v2(1, 2.98)], 96);
+  const bottomGeo = new THREE.LatheGeometry([v2(0, .12), v2(.55, .12), v2(.66, .04), v2(.76, 0), v2(.86, 0), v2(.94, .05), v2(.985, .17), v2(1, .36)], 96);
+  const topGeo    = new THREE.LatheGeometry([v2(1, 2.98), v2(.985, 3.06), v2(.93, 3.16), v2(.87, 3.24), v2(.845, 3.3), v2(.86, 3.36), v2(.87, 3.4), v2(.85, 3.42), v2(.81, 3.4), v2(.79, 3.36), v2(.78, 3.32), v2(.72, 3.31), v2(.3, 3.31), v2(0, 3.31)], 96);
+
+  const can = new THREE.Group();
+  can.add(new THREE.Mesh(bodyGeo, label), new THREE.Mesh(bottomGeo, alu), new THREE.Mesh(topGeo, alu));
+  const tabMat = new THREE.MeshStandardMaterial({ color: 0xc9cdd5, metalness: 1, roughness: .35 });
+  const rivet = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, .05, 24), tabMat); rivet.position.set(0, 3.33, 0);
+  const tab   = new THREE.Mesh(new THREE.BoxGeometry(.42, .03, .17), tabMat); tab.position.set(.1, 3.345, 0);
+  const ring  = new THREE.Mesh(new THREE.TorusGeometry(.13, .03, 10, 32), tabMat); ring.rotation.x = Math.PI / 2; ring.position.set(.3, 3.345, 0);
+  can.add(rivet, tab, ring);
+  can.position.y = -1.71;
+  const pivot = new THREE.Group(); pivot.add(can); scene.add(pivot);
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x0b0d14, .4));
+  const key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(4, 6, 5); scene.add(key);
+  const rim = new THREE.DirectionalLight(0xffffff, .7); rim.position.set(-5, 2, -4); scene.add(rim);
+  const accentLight = new THREE.PointLight(new THREE.Color(state.flavor.color), 2.4, 14, 2); accentLight.position.set(-3.2, .8, 3); scene.add(accentLight);
+  const warmLight = new THREE.PointLight(0xff9a3c, .9, 14, 2); warmLight.position.set(3.2, -2, 2.5); scene.add(warmLight);
+
+  const stage = canvas.parentElement;
+  function resize() {
+    const w = stage.clientWidth || 1, h = stage.clientHeight || 1;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.position.set(0, .15, camera.aspect < .85 ? 10.8 : 9);
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+  }
+  resize(); addEventListener('resize', resize);
+
+  let spin = -.3, spinVel = 0, dragging = false, lastX = 0, visible = true, t = 0;
+  let tRX = 0, tRY = 0, cRX = 0, cRY = 0, switching = null, popStart = -10;
+  const targetColor = new THREE.Color(state.flavor.color);
+  const shadow = $('#heroShadow');
+
+  canvas.addEventListener('pointerdown', e => {
+    dragging = true; lastX = e.clientX; spinVel = 0; canvas.classList.add('is-dragging');
+    try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - lastX; lastX = e.clientX; spinVel = dx * .006; spin += spinVel;
+  });
+  const endDrag = e => { if (!dragging) return; dragging = false; canvas.classList.remove('is-dragging'); try { canvas.releasePointerCapture(e.pointerId); } catch (_) {} };
+  canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
+  if ('IntersectionObserver' in window) new IntersectionObserver(en => { visible = en[0].isIntersecting; }, { threshold: .02 }).observe(hero);
+
+  const clock = new THREE.Clock();
+  function frame() {
+    requestAnimationFrame(frame);
+    if (!visible) return;
+    const dt = Math.min(clock.getDelta(), .05); t += dt;
+    if (!dragging) { spin += dt * .42 * (state.overclock ? 4 : 1) + spinVel; spinVel *= .94; }
+    if (finePointer && !prefersReduced) { tRX = -heroPointer.y * .22; tRY = heroPointer.x * .45; }
+    cRX = lerp(cRX, tRX, .05); cRY = lerp(cRY, tRY, .05);
+    let extra = 0, scale = 1;
+    if (switching) {
+      const p = clamp((t - switching.start) / switching.dur, 0, 1), e = easeInOutCubic(p);
+      extra = e * Math.PI * 2; scale = 1 - Math.sin(p * Math.PI) * .07;
+      if (!switching.applied && p >= .5) { label.map = switching.tex; label.needsUpdate = true; switching.applied = true; }
+      if (p >= 1) { spin += Math.PI * 2; switching = null; extra = 0; scale = 1; }
+    }
+    const pp = clamp((t - popStart) / .55, 0, 1); if (pp < 1) scale *= 1 + Math.sin(pp * Math.PI) * .09;
+    pivot.rotation.y = spin + cRY + extra;
+    pivot.rotation.x = cRX + Math.sin(t * .9) * .04;
+    pivot.rotation.z = -.14 + Math.sin(t * .7) * .05;
+    const floatY = prefersReduced ? 0 : Math.sin(t * 1.25) * .16;
+    pivot.position.y = floatY;
+    pivot.scale.setScalar(scale);
+    accentLight.color.lerp(targetColor, .06);
+    if (shadow) { const k = 1 - floatY * .6; shadow.style.transform = 'translate(-50%,-50%) scale(' + k.toFixed(3) + ',' + (k * .9).toFixed(3) + ')'; shadow.style.opacity = (.75 - floatY * 1.2).toFixed(2); }
+    renderer.render(scene, camera);
+  }
+  frame();
+
+  App.can3d = {
+    setFlavor(f) {
+      targetColor.set(f.color);
+      const tex = texFor(f);
+      if (switching) { switching.tex = tex; switching.applied = false; }
+      else switching = { start: t, dur: .9, tex: tex, applied: false };
+    },
+    pop() { popStart = t; }
+  };
+
+  fontsReady.then(() => {
+    Object.keys(texCache).forEach(k => { texCache[k].dispose(); delete texCache[k]; });
+    label.map = texFor(state.flavor); label.needsUpdate = true;
+  });
+}
+
+/* ==================================================================
+   Boot
+   ================================================================== */
+initSplitText();
+initFlavorPills();
+initFlavorCards();
+initLoader();
+initCursor();
+initNav();
+initScrollSpy();
+initHeroScrub();
+initScrollFX();
+initParticles();
+initHeroParallax();
+initTilt();
+initMagnetic();
+initRipple();
+initReveal();
+initParallax();
+initCounters();
+initCurveScrubber();
+initLoadouts();
+initCart();
+initHeroBuy();
+initNewsletter();
+initEasterEgg();
+initCan3D();
+})();
+</script>
+</body>
+</html>
